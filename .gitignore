@@ -154,3 +154,10 @@ $RECYCLE.BIN/
 
 # Mac desktop service store files
 .DS_Store
+/External libs
+/Logo/colors
+/Logo
+/Aurora Setup.docx
+*.sln
+*.db
+*.opendb
