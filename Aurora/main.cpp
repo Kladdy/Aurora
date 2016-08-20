@@ -14,16 +14,6 @@
 
 using namespace std;
 
-CTrayIcon trayIcon("Aurora", true, LoadIcon((HINSTANCE)GetModuleHandle(NULL), MAKEINTRESOURCE(IDI_ICON1)));
-sf::Vector2i getTaskbarPos();
-sf::Vector2i mousePos;
-sf::Clock timerClock;
-
-sf::CircleShape backTriangle(20, 3);
-sf::CircleShape forwardTriangle(20, 3);
-
-IL UI; //Initialize user-interface library
-
 const int TRAYWINDOW_WIDTH = 350;
 const int TRAYWINDOW_HEIGHT = 275;
 const int TRAYWINDOW_DISTANCE = 15;
@@ -33,6 +23,16 @@ const int MAINWINDOW_HEIGHT = 576;
 
 const int SETUPWINDOW_WIDTH = 1024;
 const int SETUPWINDOW_HEIGHT = 400;
+
+CTrayIcon trayIcon("Aurora", true, LoadIcon((HINSTANCE)GetModuleHandle(NULL), MAKEINTRESOURCE(IDI_ICON1)));
+sf::Vector2i getTaskbarPos();
+sf::Vector2i mousePos;
+sf::Clock closeTrayClock;
+
+sf::CircleShape backTriangle(20, 3);
+sf::CircleShape forwardTriangle(20, 3);
+
+IL UI; //Initialize user-interface library
 
 bool runSetup = true;
 bool focusMain = false;
@@ -51,7 +51,7 @@ void TrayIcon1_OnMessage(CTrayIcon* pTrayIcon, UINT uMsg){
 
 	if (uMsg == WM_LBUTTONUP || uMsg == WM_RBUTTONUP){
 		cout << "TrayIcon: Clicked" << endl;
-		if (!trayWindow.isVisible() && timerClock.getElapsedTime().asMilliseconds() > 200){
+		if (!trayWindow.isVisible() && closeTrayClock.getElapsedTime().asMilliseconds() > 200){
 			sf::Vector2i trayWindowPos = getTaskbarPos();
 			SetWindowPos(trayWindow.inst.getSystemHandle(),
 				HWND_TOPMOST,
@@ -83,7 +83,7 @@ void AuroraTray(sf::RenderWindow* w){
 			SetForegroundWindow(mainWindow.inst.getSystemHandle());
 			focusMain = false;
 		}
-		timerClock.restart();
+		closeTrayClock.restart();
 	}
 	sf::Event event;
 	while (window.pollEvent(event))
@@ -93,6 +93,7 @@ void AuroraTray(sf::RenderWindow* w){
 		if (event.type == sf::Event::MouseButtonPressed && sf::Mouse::isButtonPressed(sf::Mouse::Left)){
 			cout << "TrayWindow: Leftclick" << endl;
 			mainWindow.inst.setVisible(true);
+			SetForegroundWindow(mainWindow.inst.getSystemHandle());
 			focusMain = true;
 		}
 	}
@@ -101,16 +102,22 @@ void AuroraTray(sf::RenderWindow* w){
 }
 
 void AuroraMain(sf::RenderWindow* w){
-
 	sf::RenderWindow& window = *w;
-	
+	mousePos = sf::Mouse::getPosition(window);
+
 	mousePos = sf::Mouse::getPosition(window);
 	sf::Event event;
 	while (window.pollEvent(event))
 	{
 		if (event.type == sf::Event::Closed)
 			mainWindow.inst.setVisible(false);
+		if (event.type == sf::Event::MouseButtonPressed && sf::Mouse::isButtonPressed(sf::Mouse::Left)){
+			UI.mouseClicked(mousePos, 1);
+		}
 	}
+
+	
+
 	window.clear(sf::Color::Black);
 
 	UI.render(window);
@@ -156,6 +163,8 @@ void initializeSetup(){
 	forwardTriangle.setPosition(sf::Vector2f(990, 362));
 	UI.newRoundButton(sf::Vector2f(964, 340), sf::Vector2f(50, 50), 10, sf::Color(0, 219, 58, 200), &forwardTriangle);
 
+	UI.newFade(sf::Vector2f(SETUPWINDOW_WIDTH, SETUPWINDOW_HEIGHT), 1);
+
 	runSetup = false;
 }
 
@@ -189,6 +198,7 @@ int main(){
 
 	MSG msg;
 	while (true){
+
 		if (runSetup)
 			initializeSetup();
 

@@ -8,10 +8,12 @@ class IL{
 public:
 	bool libSetup(string path);
 	bool render(sf::RenderWindow& window);
-	bool mouseClicked(sf::Vector2i mousePos);
+	bool mouseClicked(sf::Vector2i mousePos, int buttonClicked);
 	bool loadFont(string fontName, string fontLabel);
 	bool loadFontFromMemory(const void* data, int sizeInBytes, string fontLabel);
 	bool loadTextureFromMemory(const void* data, int sizeInBytes, string textureLabel);
+	bool newFade(sf::Vector2f size, int speed);
+	bool updateFade(int ID);
 	bool newTextLabel(int x, int y, string text, string font, int size, sf::Color color = sf::Color::White);
 	bool newCheckbox(int x, int y, int vertexLenght, sf::Color color = sf::Color::White);
 	bool newCheckbox(int x, int y, int vertexLenght, sf::Color color, string text, string font, int size, sf::Color colorText = sf::Color::White, int location = 0);

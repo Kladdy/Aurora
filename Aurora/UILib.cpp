@@ -7,11 +7,16 @@
 
 using namespace std;
 
+sf::Clock fadeClock;
+
 struct clickableCheckBox{
 	int x1, y1, x2, y2;
 };
 struct clickableDropDown{
 	int x1, y1, x2, y2, openHeight; bool open;
+};
+struct clickableRoundButton{
+	int x1, y1, x2, y2;
 };
 
 std::vector<sf::Font> textFont;
@@ -21,6 +26,14 @@ int amountTextFont = 0;
 std::vector<sf::Texture> loadedTextures;
 std::vector<string> textureLabel;
 int amountTextures;
+
+std::vector<sf::RectangleShape> fadeRectangle;
+std::vector<int> fadeWaitDuration;
+std::vector<int> fade;
+std::vector<bool> doFade;
+std::vector<bool> fadeDir;
+bool fadeWait(int i) { return (fadeClock.getElapsedTime().asMilliseconds() > fadeWaitDuration[i]); }
+int amountFade = 0;
 
 std::vector<sf::Text> textLabel;
 int amountTextLabel = 0;
@@ -44,10 +57,13 @@ int borderDistance = 4;
 
 std::vector<sf::RoundedRectangleShape> roundedRectangle;
 std::vector<sf::Drawable*> roundedRectangleDrawable;
+std::vector<clickableRoundButton> roundButtonArea;
 int amountRoundedRectangle;
 
 string fontPath = "";
 
+int setupProgress = 0;
+bool increaseProgress = false;
 
 /*bool animateDrop(int dropDownNumber){
 
@@ -100,48 +116,77 @@ bool IL::render(sf::RenderWindow& window){
 		window.draw(roundedRectangle[i]);
 		window.draw(*roundedRectangleDrawable[i]);
 	}
+
+
+
+	for (int i = 0; i < amountFade; i++){
+		if (doFade[i])
+			updateFade(i);
+		
+		if (fade[i] != 0){
+			window.draw(fadeRectangle[i]);
+		}
+	}
 	
 	return true;
 }
-bool IL::mouseClicked(sf::Vector2i mousePos){
-	for (int i = 0; i < checkboxFrame.size(); i++){
-		if (mousePos.x >= checkboxArea[i].x1 && mousePos.x <= checkboxArea[i].x2 && mousePos.y >= checkboxArea[i].y1 && mousePos.y <= checkboxArea[i].y2){
-			checkedBox[i] = !checkedBox[i];
-			return true;
+bool IL::mouseClicked(sf::Vector2i mousePos, int buttonClicked){
+	if (buttonClicked == 1){
+		for (int i = 0; i < checkboxFrame.size(); i++){
+			if (mousePos.x >= checkboxArea[i].x1 && mousePos.x <= checkboxArea[i].x2 && mousePos.y >= checkboxArea[i].y1 && mousePos.y <= checkboxArea[i].y2){
+				checkedBox[i] = !checkedBox[i];
+				return true;
+			}
 		}
-	}
-	for (int i = 0; i < dropDownBox.size(); i++){
-		if (!dropDownArea[i].open && mousePos.x >= dropDownArea[i].x1 && mousePos.x <= dropDownArea[i].x2 && mousePos.y >= dropDownArea[i].y1 && mousePos.y <= dropDownArea[i].y2){
-			for (int i = 0; i < dropDownBox.size(); i++){
-				dropDownArea[i].open = false;
+		for (int i = 0; i < dropDownBox.size(); i++){
+			if (!dropDownArea[i].open && mousePos.x >= dropDownArea[i].x1 && mousePos.x <= dropDownArea[i].x2 && mousePos.y >= dropDownArea[i].y1 && mousePos.y <= dropDownArea[i].y2){
+				for (int i = 0; i < dropDownBox.size(); i++){
+					dropDownArea[i].open = false;
+					dropDownBox[i].setSize(sf::Vector2f(dropDownBox[i].getGlobalBounds().width, dropDownArea[i].y2 - dropDownArea[i].y1));
+					downTria[i].setRotation(270);
+				}
+				dropDownBox[i].setSize(sf::Vector2f(dropDownBox[i].getGlobalBounds().width, dropDownArea[i].openHeight));
+				downTria[i].setRotation(180);
+				dropDownArea[i].open = true;
+				return true;
+			}
+			if (dropDownArea[i].open && mousePos.x >= dropDownArea[i].x1 && mousePos.x <= dropDownArea[i].x2 && mousePos.y >= dropDownArea[i].y1 && mousePos.y <= dropDownArea[i].openHeight + dropDownArea[i].y1){
 				dropDownBox[i].setSize(sf::Vector2f(dropDownBox[i].getGlobalBounds().width, dropDownArea[i].y2 - dropDownArea[i].y1));
 				downTria[i].setRotation(270);
+				dropDownArea[i].open = false;
+
+				int clickedElement = (mousePos.y - dropDownArea[i].y1) * dropDownTexts[i].size() / dropDownArea[i].openHeight;
+
+				dropDownTexts[i][0].setString(dropDownTexts[i][clickedElement].getString());
+
+				return true;
 			}
-			dropDownBox[i].setSize(sf::Vector2f(dropDownBox[i].getGlobalBounds().width, dropDownArea[i].openHeight));
-			downTria[i].setRotation(180);
-			dropDownArea[i].open = true;
-			return true;
+			else if (dropDownArea[i].open && !(mousePos.x >= dropDownArea[i].x1 && mousePos.x <= dropDownArea[i].x2 && mousePos.y >= dropDownArea[i].y1 && mousePos.y <= dropDownArea[i].openHeight + dropDownArea[i].y1)){
+				dropDownBox[i].setSize(sf::Vector2f(dropDownBox[i].getGlobalBounds().width, dropDownArea[i].y2 - dropDownArea[i].y1));
+				dropDownArea[i].open = false;
+				downTria[i].setRotation(270);
+			}
 		}
-		if (dropDownArea[i].open && mousePos.x >= dropDownArea[i].x1 && mousePos.x <= dropDownArea[i].x2 && mousePos.y >= dropDownArea[i].y1 && mousePos.y <= dropDownArea[i].openHeight + dropDownArea[i].y1){
-			dropDownBox[i].setSize(sf::Vector2f(dropDownBox[i].getGlobalBounds().width, dropDownArea[i].y2 - dropDownArea[i].y1));
-			downTria[i].setRotation(270);
-			dropDownArea[i].open = false;
-
-			int clickedElement = (mousePos.y - dropDownArea[i].y1) * dropDownTexts[i].size() / dropDownArea[i].openHeight;
-
-			dropDownTexts[i][0].setString(dropDownTexts[i][clickedElement].getString());
-
-			return true;
+		for (int i = 0; i < amountRoundedRectangle; i++){
+			if (mousePos.x >= roundButtonArea[i].x1 && mousePos.x <= roundButtonArea[i].x2 && mousePos.y >= roundButtonArea[i].y1 && mousePos.y <= roundButtonArea[i].y2){
+				if (i == 0){
+					if (setupProgress != 0){
+						doFade[0] = true;
+						fadeDir[0] = true;
+						increaseProgress = false;
+					}
+				} else if (i == 1){
+					if (setupProgress < 5){
+						doFade[0] = true;
+						fadeDir[0] = true;
+						increaseProgress = true;
+					}
+				}
+				return true;
+			}
 		}
-		else if (dropDownArea[i].open && !(mousePos.x >= dropDownArea[i].x1 && mousePos.x <= dropDownArea[i].x2 && mousePos.y >= dropDownArea[i].y1 && mousePos.y <= dropDownArea[i].openHeight + dropDownArea[i].y1)){
-			dropDownBox[i].setSize(sf::Vector2f(dropDownBox[i].getGlobalBounds().width, dropDownArea[i].y2 - dropDownArea[i].y1));
-			dropDownArea[i].open = false;
-			downTria[i].setRotation(270);
-		}
-
-
 	}
-	cout << "X: " + to_string(mousePos.x) + " Y: " + to_string(mousePos.y) << endl;
+	cout << "X: " << mousePos.x << " Y: " << mousePos.y << " B: " << buttonClicked << endl;
 	return false;
 }
 bool IL::loadFont(string fontName, string label){
@@ -171,7 +216,7 @@ bool IL::loadFontFromMemory(const void* data, int sizeInBytes, string label){
 	amountTextFont++;
 	return true;
 }
-bool loadTextureFromMemory(const void* data, int sizeInBytes, string label){
+bool IL::loadTextureFromMemory(const void* data, int sizeInBytes, string label){
 	sf::Texture texture;
 	if (!texture.loadFromMemory(data, sizeInBytes)){
 		cout << "Failed to load texture " + label << endl;
@@ -195,6 +240,48 @@ bool setFont(sf::Text& text, string font){
 			return false;
 		}
 	}
+	return true;
+}
+bool IL::newFade(sf::Vector2f size, int speed){
+	sf::RectangleShape rect = sf::RectangleShape(size);
+	rect.setFillColor(sf::Color(0, 0, 0, 0));
+	fadeRectangle.push_back(rect);
+	fade.push_back(0);
+	doFade.push_back(false);
+	fadeDir.push_back(true);
+	fadeWaitDuration.push_back(speed);
+	amountFade++;
+
+	cout << "Setup progress: " << setupProgress << endl;
+
+	return true;
+}
+bool IL::updateFade(int ID){
+	if (doFade[ID] && fadeDir[ID] && fade[ID] < 255 && fadeWait(ID)){
+		fade[ID]++;
+		fadeClock.restart();
+	}
+	else if (doFade[ID] && !fadeDir[ID] && fade[ID] > 0 && fadeWait(ID)){
+		fade[ID]--;
+		fadeClock.restart();
+	}
+	else if (doFade[ID] && fadeDir[ID] && fade[ID] == 255 && fadeWait(ID)){
+		if (increaseProgress)
+			setupProgress++;
+		else
+			setupProgress--;
+		cout << "Setup progress: " << setupProgress << endl;
+
+		fadeDir[ID] = false;
+		fadeClock.restart();
+	}
+	else if (doFade[ID] && !fadeDir[ID] && fade[ID] == 0 && fadeWait(ID)){
+		doFade[ID] = false;
+		fadeDir[ID] = true;
+	}
+
+	fadeRectangle[ID].setFillColor(sf::Color(0, 0, 0, fade[ID]));
+
 	return true;
 }
 bool IL::newTextLabel(int x, int y, string text, string font, int size, sf::Color color){
@@ -343,8 +430,13 @@ bool IL::newRoundButton(sf::Vector2f position, sf::Vector2f size, int radius, sf
 	roundRect.setFillColor(sf::Color::Transparent);
 	roundRect.setOutlineColor(color);
 
+	clickableRoundButton clickArea = {
+		position.x, position.y, position.x + size.x, position.y + size.y
+	};
+
 	roundedRectangleDrawable.push_back(d); 
 	roundedRectangle.push_back(roundRect);
+	roundButtonArea.push_back(clickArea);
 	amountRoundedRectangle++;
 	return true;
 }
