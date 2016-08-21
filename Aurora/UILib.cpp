@@ -5,7 +5,8 @@
 #include <iostream>
 #include "RoundedRectangleShape.hpp"
 #include <stdlib.h>     
-#include <time.h>       
+#include <time.h>
+#include "enumser.h"
 
 using namespace std;
 
@@ -204,23 +205,56 @@ bool IL::mouseClicked(sf::Vector2i mousePos, int buttonClicked){
 						fadeDir[0] = true;
 						increaseProgress = false;
 					}
+					return true;
 				} else if (i == 1){
 					if (setupProgress < 20){
 						doFade[0] = true;
 						fadeDir[0] = true;
 						increaseProgress = true;
 					}
+					return true;
 				}
-				else if (i > 1 && i < amountSupportedStrips + 2) {
+
+				else if (i > 1 && i < amountSupportedStrips + 2 && setupProgress == 1) {
 					selectedModel = i;
 					roundedRectangle[i].setOutlineColor(sf::Color(19, 161, 237, 220));
+					return true;
 				}
-				return true;
 			}
 		}
 	}
 	cout << "X: " << mousePos.x << " Y: " << mousePos.y << " B: " << buttonClicked << endl;
 	return false;
+}
+void getActiveCOM() {
+	CEnumerateSerial::CPortsArray ports;
+	CEnumerateSerial::CNamesArray names;
+#ifdef CENUMERATESERIAL_USE_STL
+	size_t i = 0;
+	UNREFERENCED_PARAMETER(i);
+#elif defined _AFX
+	INT_PTR i = 0;
+#else
+	int i = 0;
+#endif
+
+#ifndef NO_CENUMERATESERIAL_USING_SETUPAPI1
+	_tprintf(_T("Device Manager (SetupAPI - GUID_DEVINTERFACE_COMPORT) reports\n"));
+	if (CEnumerateSerial::UsingSetupAPI1(ports, names))
+	{
+#ifdef CENUMERATESERIAL_USE_STL
+		for (i = 0; i < ports.size(); i++)
+			_tprintf(_T("COM%u <%s>\n"), ports[i], names[i].c_str());
+#else
+		for (i = 0; i < ports.GetSize(); i++)
+			_tprintf(_T("COM%u <%s>\n"), ports[i], names[i].operator LPCTSTR());
+#endif
+	}
+	else
+		_tprintf(_T("CEnumerateSerial::UsingSetupAPI1 failed, Error:%u\n"), GetLastError());
+#endif
+
+	CoUninitialize();
 }
 bool IL::loadFont(string fontName, string label){
 	sf::Font font;
@@ -298,8 +332,6 @@ bool IL::newFade(sf::Vector2f size, int speed){
 	fadeWaitDuration.push_back(speed);
 	amountFade++;
 
-	cout << "Setup progress: " << setupProgress << endl;
-
 	return true;
 }
 bool IL::updateFade(int ID){
@@ -316,7 +348,6 @@ bool IL::updateFade(int ID){
 			setupProgress++;
 		else
 			setupProgress--;
-		cout << "Setup progress: " << setupProgress << endl;
 		updateSetup();
 		fadeDir[ID] = false;
 		fadeClock.restart();
@@ -536,6 +567,7 @@ bool IL::updateSetup() {
 	case 2:
 		textLabel[0].setString("Aurora - Setup: USB COM-port");
 		textLabel[1].setString("");
+		getActiveCOM();
 		break;
 
 	case 3:
@@ -577,7 +609,5 @@ bool IL::highlightRoundbox(sf::Vector2i mousePos) {
 		}
 	}
 	
-
-
 	return true;
 }

@@ -14,6 +14,7 @@
     <ProjectGuid>{4E8F0793-8E73-4095-BF62-747B06F166D5}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>Aurora</RootNamespace>
+    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -28,6 +29,7 @@
     <PlatformToolset>v140</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>NotSet</CharacterSet>
+    <CLRSupport>true</CLRSupport>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -81,9 +83,12 @@
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalLibraryDirectories>C:\Programming\GitHub\Aurora\External libs\SFML-2.4.0\lib</AdditionalLibraryDirectories>
       <AdditionalDependencies>sfml-graphics-s.lib;sfml-window-s.lib;sfml-system-s.lib;winmm.lib;opengl32.lib;gdi32.lib;freetype.lib;jpeg.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <NoEntryPoint>false</NoEntryPoint>
+      <EntryPointSymbol>mymain</EntryPointSymbol>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="enumser.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="RoundedRectangleShape.cpp" />
     <ClCompile Include="stdafx.cpp" />
@@ -91,6 +96,7 @@
     <ClCompile Include="UILib.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="enumser.h" />
     <ClInclude Include="fonts.h" />
     <ClInclude Include="pictures.h" />
     <ClInclude Include="resource.h" />

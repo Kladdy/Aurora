@@ -12,6 +12,24 @@
 #include "fonts.h"
 #include "pictures.h"
 #include "RoundedRectangleShape.hpp"
+#include <atlstr.h>
+
+#define _WIN32_WINNT 0x501
+#include <objbase.h>
+#include <stdio.h> 
+
+#using <mscorlib.dll>
+using namespace System;
+
+extern "C" void mainCRTStartup();
+
+[System::STAThread]
+int mymain(){ //https://support.microsoft.com/en-us/kb/824480
+	HRESULT hr = CoInitialize(0);
+	mainCRTStartup();
+	CoUninitialize();
+	return 0;
+}
 
 using namespace std;
 
