@@ -4,8 +4,12 @@
 #include <string>
 #include <iostream>
 #include "RoundedRectangleShape.hpp"
+#include <stdlib.h>     
+#include <time.h>       
 
 using namespace std;
+
+bool updateSetup();
 
 sf::Clock fadeClock;
 
@@ -56,7 +60,7 @@ int amountDropDown;
 int borderDistance = 4;
 
 std::vector<sf::RoundedRectangleShape> roundedRectangle;
-std::vector<sf::Drawable*> roundedRectangleDrawable;
+std::vector<sf::CircleShape> roundedRectangleDrawable;
 std::vector<clickableRoundButton> roundButtonArea;
 int amountRoundedRectangle;
 
@@ -64,6 +68,9 @@ string fontPath = "";
 
 int setupProgress = 0;
 bool increaseProgress = false;
+
+std::vector<sf::Color> goodColors;
+std::vector<sf::Color> evilColors;
 
 /*bool animateDrop(int dropDownNumber){
 
@@ -83,8 +90,21 @@ downTria[dropDownNumber].setRotation(180);
 return true;
 }*/
 bool IL::libSetup(string path){
-	fontPath = path;
-	cout << "Path to font files defined as " + fontPath << endl;
+	
+	if (path != "c") {
+		fontPath = path;
+		cout << "Path to font files defined as " + fontPath << endl;
+	}
+
+	goodColors.push_back(sf::Color(11, 176, 63, 180)); //Green
+	goodColors.push_back(sf::Color(19, 161, 237, 180)); //Blue
+	goodColors.push_back(sf::Color(202, 50, 240, 180)); //Purple
+	goodColors.push_back(sf::Color(219, 192, 18, 180)); //Lime
+
+	evilColors.push_back(sf::Color(176, 11, 124, 180)); //Purple
+	evilColors.push_back(sf::Color(224, 90, 18, 180)); //Orange
+	evilColors.push_back(sf::Color(69, 184, 40, 180)); //Dark Green
+	evilColors.push_back(sf::Color(48, 40, 199, 180)); //Dark Blue
 
 	return true;
 }
@@ -114,7 +134,7 @@ bool IL::render(sf::RenderWindow& window){
 	}
 	for (int i = 0; i < amountRoundedRectangle; i++){
 		window.draw(roundedRectangle[i]);
-		window.draw(*roundedRectangleDrawable[i]);
+		window.draw(roundedRectangleDrawable[i]);
 	}
 
 
@@ -271,7 +291,7 @@ bool IL::updateFade(int ID){
 		else
 			setupProgress--;
 		cout << "Setup progress: " << setupProgress << endl;
-
+		updateSetup();
 		fadeDir[ID] = false;
 		fadeClock.restart();
 	}
@@ -421,7 +441,7 @@ bool IL::newDropDown(int x, int y, string defaultText, std::vector<string> eleme
 	amountDropDown++;
 	return true;
 }
-bool IL::newRoundButton(sf::Vector2f position, sf::Vector2f size, int radius, sf::Color color, sf::Drawable* d){
+bool IL::newRoundButton(sf::Vector2f position, sf::Vector2f size, int radius, sf::Color color, sf::CircleShape d){
 	sf::RoundedRectangleShape roundRect;
 
 	roundRect = sf::RoundedRectangleShape(size, radius, 10);
@@ -438,5 +458,35 @@ bool IL::newRoundButton(sf::Vector2f position, sf::Vector2f size, int radius, sf
 	roundedRectangle.push_back(roundRect);
 	roundButtonArea.push_back(clickArea);
 	amountRoundedRectangle++;
+	return true;
+}
+
+sf::Color getRandomColor() {
+
+	return goodColors[rand() % goodColors.size()];
+
+		return evilColors[rand() % evilColors.size()];
+
+	return sf::Color(0, 0, 0, 255);
+}
+
+bool IL::updateSetup() {
+	srand(time(NULL));
+
+	int c = rand() % goodColors.size();
+
+	if (setupProgress != 0) {
+		roundedRectangle[0].setOutlineColor(evilColors[c]);
+		roundedRectangleDrawable[0].setFillColor(evilColors[c]);
+	} else if (setupProgress == 0) {
+		sf::Color color = sf::Color(60, 60, 60, 200);
+		roundedRectangle[0].setOutlineColor(color);
+		roundedRectangleDrawable[0].setFillColor(color);
+	}
+
+	roundedRectangle[1].setOutlineColor(goodColors[c]);
+	roundedRectangleDrawable[1].setFillColor(goodColors[c]);
+	
+
 	return true;
 }

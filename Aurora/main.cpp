@@ -28,6 +28,7 @@ CTrayIcon trayIcon("Aurora", true, LoadIcon((HINSTANCE)GetModuleHandle(NULL), MA
 sf::Vector2i getTaskbarPos();
 sf::Vector2i mousePos;
 sf::Clock closeTrayClock;
+sf::Clock limitClock;
 
 sf::CircleShape backTriangle(20, 3);
 sf::CircleShape forwardTriangle(20, 3);
@@ -91,7 +92,7 @@ void AuroraTray(sf::RenderWindow* w){
 		if (event.type == sf::Event::Closed)
 			window.close();
 		if (event.type == sf::Event::MouseButtonPressed && sf::Mouse::isButtonPressed(sf::Mouse::Left)){
-			cout << "TrayWindow: Leftclick" << endl;
+			cout << "TrayWindow: Left click" << endl;
 			mainWindow.inst.setVisible(true);
 			SetForegroundWindow(mainWindow.inst.getSystemHandle());
 			focusMain = true;
@@ -149,26 +150,30 @@ sf::Vector2i getTaskbarPos(){
 
 void initializeSetup(){
 
-	UI.newTextLabel(10, 10, "Hello akbar!", "comfortaa", 30, sf::Color::Cyan);
+	UI.newTextLabel(10, 10, "Aurora", "comfortaa", 30, sf::Color::Cyan);
 
 	backTriangle.setFillColor(sf::Color(255, 191, 54, 200));
 	backTriangle.setOrigin(backTriangle.getGlobalBounds().width / 2, backTriangle.getGlobalBounds().height / 2);
 	backTriangle.rotate(-90);
 	backTriangle.setPosition(sf::Vector2f(34, 367));
-	UI.newRoundButton(sf::Vector2f(10, 340), sf::Vector2f(50, 50), 10, sf::Color(255, 191, 54, 200), &backTriangle);
+	UI.newRoundButton(sf::Vector2f(10, 340), sf::Vector2f(50, 50), 10, sf::Color(255, 191, 54, 200), backTriangle);
 	
 	forwardTriangle.setFillColor(sf::Color(0, 219, 58, 200));
 	forwardTriangle.setOrigin(forwardTriangle.getGlobalBounds().width / 2, forwardTriangle.getGlobalBounds().height / 2);
 	forwardTriangle.rotate(90);
 	forwardTriangle.setPosition(sf::Vector2f(990, 362));
-	UI.newRoundButton(sf::Vector2f(964, 340), sf::Vector2f(50, 50), 10, sf::Color(0, 219, 58, 200), &forwardTriangle);
+	UI.newRoundButton(sf::Vector2f(964, 340), sf::Vector2f(50, 50), 10, sf::Color(0, 219, 58, 200), forwardTriangle);
 
 	UI.newFade(sf::Vector2f(SETUPWINDOW_WIDTH, SETUPWINDOW_HEIGHT), 1);
+
+	UI.updateSetup();
 
 	runSetup = false;
 }
 
 int main(){
+
+	UI.libSetup();
 
 	//Initialize the main window
 	sf::ContextSettings settings;
@@ -197,16 +202,19 @@ int main(){
 	mainWindow.inst.setPosition(mainWindowPos);
 
 	MSG msg;
-	while (true){
+	while (1) {
+		if (limitClock.getElapsedTime().asMilliseconds() > 10) {
+			limitClock.restart();
 
-		if (runSetup)
-			initializeSetup();
+			if (runSetup)
+				initializeSetup();
 
-		if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)){
-			TranslateMessage(&msg);
-			DispatchMessage(&msg);
+			if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
+				TranslateMessage(&msg);
+				DispatchMessage(&msg);
+			}
 		}
-		
+			
 		if (mainWindow.isVisible())
 			mainWindow.loop();
 
