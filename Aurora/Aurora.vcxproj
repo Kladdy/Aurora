@@ -92,6 +92,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="fonts.h" />
+    <ClInclude Include="pictures.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="RoundedRectangleShape.hpp" />
     <ClInclude Include="stdafx.h" />
@@ -102,7 +103,8 @@
     <ResourceCompile Include="Aurora.rc" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="..\Logo\Aurora512.ico" />
+    <Image Include="..\Logo\AuroraThickBlue.ico" />
+    <Image Include="..\Logo\AuroraThickBlue16.ico" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

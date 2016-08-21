@@ -1,0 +1,44 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="RoundedRectangleShape.cpp" />
+    <ClCompile Include="stdafx.cpp" />
+    <ClCompile Include="TrayIcon.cpp" />
+    <ClCompile Include="UILib.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="resource.h" />
+    <ClInclude Include="RoundedRectangleShape.hpp" />
+    <ClInclude Include="stdafx.h" />
+    <ClInclude Include="TrayIcon.h" />
+    <ClInclude Include="UILib.h" />
+    <ClInclude Include="fonts.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="pictures.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Headers">
+      <UniqueIdentifier>{ab6f1211-8f82-457d-a7ac-0986dd02ef1b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Icons">
+      <UniqueIdentifier>{0fa4828d-5d3d-4050-ae0b-ea685812bca8}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Aurora.rc">
+      <Filter>Headers</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\Logo\AuroraThickBlue16.ico">
+      <Filter>Icons</Filter>
+    </Image>
+    <Image Include="..\Logo\AuroraThickBlue.ico">
+      <Filter>Icons</Filter>
+    </Image>
+  </ItemGroup>
+</Project>

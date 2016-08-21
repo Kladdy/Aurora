@@ -23,12 +23,16 @@ struct clickableRoundButton{
 	int x1, y1, x2, y2;
 };
 
+std::vector<sf::Sprite> loadedSprites;
+int amountSprites = 0;
+
 std::vector<sf::Font> textFont;
 std::vector<string> fontLabel;
 int amountTextFont = 0;
 
 std::vector<sf::Texture> loadedTextures;
 std::vector<string> textureLabel;
+sf::Texture t;
 int amountTextures;
 
 std::vector<sf::RectangleShape> fadeRectangle;
@@ -60,7 +64,7 @@ int amountDropDown;
 int borderDistance = 4;
 
 std::vector<sf::RoundedRectangleShape> roundedRectangle;
-std::vector<sf::CircleShape> roundedRectangleDrawable;
+std::vector<sf::Drawable*> roundedRectangleDrawable;
 std::vector<clickableRoundButton> roundButtonArea;
 int amountRoundedRectangle;
 
@@ -71,26 +75,15 @@ bool increaseProgress = false;
 
 std::vector<sf::Color> goodColors;
 std::vector<sf::Color> evilColors;
+int lastColor = -1;
 
-/*bool animateDrop(int dropDownNumber){
+int amountSupportedStrips;
+int selectedModel;
 
-int dropRate = (dropDownArea[dropDownNumber].openHeight - (dropDownArea[dropDownNumber].y2 - dropDownArea[dropDownNumber].y1)) / 20;
-
-if (dropDownArea[dropDownNumber].animate && dropDownBox[dropDownNumber].getGlobalBounds().height < dropDownArea[dropDownNumber].openHeight && dropDownArea[dropDownNumber].open){
-dropDownBox[dropDownNumber].setSize(sf::Vector2f(dropDownBox[dropDownNumber].getGlobalBounds().width, dropDownBox[dropDownNumber].getGlobalBounds().height + dropRate));
-downTria[dropDownNumber].rotate(-4.5);
-}
-else if (dropDownBox[dropDownNumber].getGlobalBounds().height >= dropDownArea[dropDownNumber].openHeight && dropDownArea[dropDownNumber].open){
-dropDownBox[dropDownNumber].setSize(sf::Vector2f(dropDownBox[dropDownNumber].getGlobalBounds().width, dropDownArea[dropDownNumber].openHeight));
-}
-if (downTria[dropDownNumber].getRotation() < 180 && dropDownArea[dropDownNumber].open){
-downTria[dropDownNumber].setRotation(180);
-}
-
-return true;
-}*/
-bool IL::libSetup(string path){
+bool IL::libSetup(int amountStrips, string path){
 	
+	amountSupportedStrips = amountStrips;
+
 	if (path != "c") {
 		fontPath = path;
 		cout << "Path to font files defined as " + fontPath << endl;
@@ -110,6 +103,14 @@ bool IL::libSetup(string path){
 }
 bool IL::render(sf::RenderWindow& window){
 	amountCheckboxText = 0;
+	for (int i = 0; i < amountSprites; i++) {
+		if (i == 0) {
+			if (setupProgress == 0)
+				window.draw(loadedSprites[i]);
+		} else {
+			window.draw(loadedSprites[i]);
+		}
+	}
 	for (int i = 0; i < amountTextLabel; i++){
 		window.draw(textLabel[i]);
 	}
@@ -133,8 +134,16 @@ bool IL::render(sf::RenderWindow& window){
 		}
 	}
 	for (int i = 0; i < amountRoundedRectangle; i++){
-		window.draw(roundedRectangle[i]);
-		window.draw(roundedRectangleDrawable[i]);
+		if (i > 1 && i < amountSupportedStrips + 2) {
+			if (setupProgress == 1)
+				window.draw(roundedRectangle[i]);
+		} else {
+			window.draw(roundedRectangle[i]);
+			if (roundedRectangleDrawable[i] != NULL) {
+				window.draw(*roundedRectangleDrawable[i]);
+			}
+		}
+		
 	}
 
 
@@ -196,11 +205,15 @@ bool IL::mouseClicked(sf::Vector2i mousePos, int buttonClicked){
 						increaseProgress = false;
 					}
 				} else if (i == 1){
-					if (setupProgress < 5){
+					if (setupProgress < 20){
 						doFade[0] = true;
 						fadeDir[0] = true;
 						increaseProgress = true;
 					}
+				}
+				else if (i > 1 && i < amountSupportedStrips + 2) {
+					selectedModel = i;
+					roundedRectangle[i].setOutlineColor(sf::Color(19, 161, 237, 220));
 				}
 				return true;
 			}
@@ -244,6 +257,7 @@ bool IL::loadTextureFromMemory(const void* data, int sizeInBytes, string label){
 	}
 	else{ cout << "Successfully loaded texture with the label " + label << endl; }
 	
+	texture.setSmooth(true);
 	loadedTextures.push_back(texture);
 	textureLabel.push_back(label);
 	amountTextures++;
@@ -261,6 +275,18 @@ bool setFont(sf::Text& text, string font){
 		}
 	}
 	return true;
+}
+int getTexture(string texture) {
+	for (int i = 0; i < textureLabel.size(); i++) {
+		if (textureLabel[i] == texture) {
+			return i;
+		}
+		else if (i == (textureLabel.size() - 1)) {
+			cout << "A texture with the label " + texture + " has not been initialized" << endl;
+			return 0;
+		}
+	}
+	return 0;
 }
 bool IL::newFade(sf::Vector2f size, int speed){
 	sf::RectangleShape rect = sf::RectangleShape(size);
@@ -302,6 +328,17 @@ bool IL::updateFade(int ID){
 
 	fadeRectangle[ID].setFillColor(sf::Color(0, 0, 0, fade[ID]));
 
+	return true;
+}
+bool IL::newSprite(sf::Vector2f position, string textureLabel, sf::Vector2f scale) {
+	sf::Sprite sprite;
+	sprite.setTexture(loadedTextures[getTexture(textureLabel)]);
+	sprite.setOrigin(sf::Vector2f(sprite.getGlobalBounds().width / 2, sprite.getGlobalBounds().height / 2));
+	sprite.setScale(scale);
+	sprite.setPosition(position);
+
+	loadedSprites.push_back(sprite);
+	amountSprites++;
 	return true;
 }
 bool IL::newTextLabel(int x, int y, string text, string font, int size, sf::Color color){
@@ -441,7 +478,7 @@ bool IL::newDropDown(int x, int y, string defaultText, std::vector<string> eleme
 	amountDropDown++;
 	return true;
 }
-bool IL::newRoundButton(sf::Vector2f position, sf::Vector2f size, int radius, sf::Color color, sf::CircleShape d){
+bool IL::newRoundButton(sf::Vector2f position, sf::Vector2f size, int radius, sf::Color color, sf::Drawable* d){
 	sf::RoundedRectangleShape roundRect;
 
 	roundRect = sf::RoundedRectangleShape(size, radius, 10);
@@ -453,40 +490,94 @@ bool IL::newRoundButton(sf::Vector2f position, sf::Vector2f size, int radius, sf
 	clickableRoundButton clickArea = {
 		position.x, position.y, position.x + size.x, position.y + size.y
 	};
-
-	roundedRectangleDrawable.push_back(d); 
+	
+	roundedRectangleDrawable.push_back(d);
 	roundedRectangle.push_back(roundRect);
 	roundButtonArea.push_back(clickArea);
 	amountRoundedRectangle++;
 	return true;
 }
 
-sf::Color getRandomColor() {
-
-	return goodColors[rand() % goodColors.size()];
-
-		return evilColors[rand() % evilColors.size()];
-
-	return sf::Color(0, 0, 0, 255);
-}
-
 bool IL::updateSetup() {
 	srand(time(NULL));
 
-	int c = rand() % goodColors.size();
+	int c;
+	do { c = rand() % goodColors.size();
+	} while (c == lastColor);
+	
+	lastColor = c;
 
 	if (setupProgress != 0) {
 		roundedRectangle[0].setOutlineColor(evilColors[c]);
-		roundedRectangleDrawable[0].setFillColor(evilColors[c]);
+		if (roundedRectangleDrawable[0] != NULL) {((sf::CircleShape*)roundedRectangleDrawable[0])->setFillColor(evilColors[c]);}
 	} else if (setupProgress == 0) {
 		sf::Color color = sf::Color(60, 60, 60, 200);
 		roundedRectangle[0].setOutlineColor(color);
-		roundedRectangleDrawable[0].setFillColor(color);
-	}
+		if (roundedRectangleDrawable[0] != NULL) {((sf::CircleShape*)roundedRectangleDrawable[0])->setFillColor(color);}}
 
 	roundedRectangle[1].setOutlineColor(goodColors[c]);
-	roundedRectangleDrawable[1].setFillColor(goodColors[c]);
+	if (roundedRectangleDrawable[1] != NULL) {((sf::CircleShape*)roundedRectangleDrawable[1])->setFillColor(goodColors[c]);}
 	
+	switch (setupProgress)
+	{
+	case 0: 
+		textLabel[0].setString("Aurora - Setup: Introduction");
+		textLabel[1].setString("Greetings! I will guide you through how to properly set up Aurora. If this is your first time using the program, \nplease read the contents of this walkthrough carefully."\
+			" You can re-run the setup-process by *insert feature \nto repeat setup here*. Use the arrows below in order to maneuver your way through the different options."\
+			"\n\nIf you are unsure about which settings to opt for, or you believe that something is missing or not working as \nintended, don't hesitate to contact me. *Insert methods of contacting me here*");
+		break;
+
+	case 1:
+		textLabel[0].setString("Aurora - Setup: RGB Strip Model");
+		textLabel[1].setString("To use Aurora, you need to know what kind of RGB strip that you are using. There are plenty of different \nmodels out there, and the currently supported ones are displayed below."\
+			" If you have any RGB strip that is \nnot yet supported, throw me a message and I will add it for you. Selecting the proper RGB strip model is \nessential for making sure Aurora can do its magic with it.");
+		break;
+
+	case 2:
+		textLabel[0].setString("Aurora - Setup: USB COM-port");
+		textLabel[1].setString("");
+		break;
+
+	case 3:
+		textLabel[0].setString("Aurora - Setup: Baud-rate & LED amount");
+		textLabel[1].setString("");
+		break;
+
+	case 4:
+		textLabel[0].setString("Aurora - Setup: Arduino configuration");
+		textLabel[1].setString("");
+		break;
+
+	case 5:
+		textLabel[0].setString("Aurora - Setup: Miscellaneous");
+		textLabel[1].setString("");
+		break;
+
+
+	default:
+		textLabel[0].setString("");
+		textLabel[1].setString("");
+		break;
+	}
+	
+
+	return true;
+}
+bool IL::highlightRoundbox(sf::Vector2i mousePos) {
+	if (setupProgress == 1) {
+		for (int r = 2; r < amountSupportedStrips + 2; r++) {
+			if (r != selectedModel) 
+				roundedRectangle[r].setOutlineColor(sf::Color(120, 120, 120, 180));
+		}
+		for (int i = 2; i < amountSupportedStrips + 2; i++) {			
+			if (mousePos.x >= roundButtonArea[i].x1 && mousePos.x <= roundButtonArea[i].x2 && mousePos.y >= roundButtonArea[i].y1 && mousePos.y <= roundButtonArea[i].y2) {		
+				if (i != selectedModel)
+					roundedRectangle[i].setOutlineColor(sf::Color(242, 242, 242, 210));
+			}
+		}
+	}
+	
+
 
 	return true;
 }

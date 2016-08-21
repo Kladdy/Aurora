@@ -10,6 +10,7 @@
 #include "resource.h"
 #include "UILib.h"
 #include "fonts.h"
+#include "pictures.h"
 #include "RoundedRectangleShape.hpp"
 
 using namespace std;
@@ -24,7 +25,9 @@ const int MAINWINDOW_HEIGHT = 576;
 const int SETUPWINDOW_WIDTH = 1024;
 const int SETUPWINDOW_HEIGHT = 400;
 
-CTrayIcon trayIcon("Aurora", true, LoadIcon((HINSTANCE)GetModuleHandle(NULL), MAKEINTRESOURCE(IDI_ICON1)));
+const int AMOUNT_SUPPORTEDSTRIPS = 6;
+
+CTrayIcon trayIcon("Aurora", true, LoadIcon((HINSTANCE)GetModuleHandle(NULL), MAKEINTRESOURCE(IDI_ICON5)));
 sf::Vector2i getTaskbarPos();
 sf::Vector2i mousePos;
 sf::Clock closeTrayClock;
@@ -106,7 +109,6 @@ void AuroraMain(sf::RenderWindow* w){
 	sf::RenderWindow& window = *w;
 	mousePos = sf::Mouse::getPosition(window);
 
-	mousePos = sf::Mouse::getPosition(window);
 	sf::Event event;
 	while (window.pollEvent(event))
 	{
@@ -121,6 +123,7 @@ void AuroraMain(sf::RenderWindow* w){
 
 	window.clear(sf::Color::Black);
 
+	UI.highlightRoundbox(mousePos);
 	UI.render(window);
 
 	window.display();
@@ -150,19 +153,29 @@ sf::Vector2i getTaskbarPos(){
 
 void initializeSetup(){
 
-	UI.newTextLabel(10, 10, "Aurora", "comfortaa", 30, sf::Color::Cyan);
+	UI.newTextLabel(10, 7, "Aurora - Setup: Introduction", "comfortaa", 30, sf::Color::White);
+	UI.newTextLabel(10, 45, "Greetings! I will guide you through how to properly set up Aurora. If this is your first time using the program, \nplease read the contents of this walkthrough carefully."\
+		"You can re-run the setup-process by *insert feature \nto repeat setup here*. Use the arrows below in order to maneuver your way through the different options."\
+		"\n\nIf you are unsure about which settings to opt for, or you believe that something is missing or not working as \nintended, don't hesitate to contact me. *Insert methods of contacting me here*", "comfortaa", 18);
+
+	UI.loadTextureFromMemory((void*)AuroraLogo256, AuroraLogo256_Size, "auroralogo256");
+	UI.newSprite(sf::Vector2f(512, 280), "auroralogo256", sf::Vector2f(0.7f, 0.7f));
 
 	backTriangle.setFillColor(sf::Color(255, 191, 54, 200));
 	backTriangle.setOrigin(backTriangle.getGlobalBounds().width / 2, backTriangle.getGlobalBounds().height / 2);
 	backTriangle.rotate(-90);
 	backTriangle.setPosition(sf::Vector2f(34, 367));
-	UI.newRoundButton(sf::Vector2f(10, 340), sf::Vector2f(50, 50), 10, sf::Color(255, 191, 54, 200), backTriangle);
+	UI.newRoundButton(sf::Vector2f(10, 340), sf::Vector2f(50, 50), 10, sf::Color(255, 191, 54, 200), &backTriangle);
 	
 	forwardTriangle.setFillColor(sf::Color(0, 219, 58, 200));
 	forwardTriangle.setOrigin(forwardTriangle.getGlobalBounds().width / 2, forwardTriangle.getGlobalBounds().height / 2);
 	forwardTriangle.rotate(90);
 	forwardTriangle.setPosition(sf::Vector2f(990, 362));
-	UI.newRoundButton(sf::Vector2f(964, 340), sf::Vector2f(50, 50), 10, sf::Color(0, 219, 58, 200), forwardTriangle);
+	UI.newRoundButton(sf::Vector2f(964, 340), sf::Vector2f(50, 50), 10, sf::Color(0, 219, 58, 200), &forwardTriangle);
+
+	for (int i = 0; i < AMOUNT_SUPPORTEDSTRIPS; i++) {
+		UI.newRoundButton(sf::Vector2f(10 + 149 * i, 135), sf::Vector2f(140, 196), 10, sf::Color(120, 120, 120, 180));
+	}
 
 	UI.newFade(sf::Vector2f(SETUPWINDOW_WIDTH, SETUPWINDOW_HEIGHT), 1);
 
@@ -173,7 +186,7 @@ void initializeSetup(){
 
 int main(){
 
-	UI.libSetup();
+	UI.libSetup(AMOUNT_SUPPORTEDSTRIPS);
 
 	//Initialize the main window
 	sf::ContextSettings settings;
@@ -183,7 +196,7 @@ int main(){
 	else{
 		mainWindow.inst.create(sf::VideoMode(SETUPWINDOW_WIDTH, SETUPWINDOW_HEIGHT), "Aurora Setup", sf::Style::Close, settings);
 	}
-	SetClassLongPtr(mainWindow.inst.getSystemHandle(), GCL_HICON, (LPARAM)LoadIcon(GetModuleHandle(NULL), MAKEINTRESOURCE(IDI_ICON1)));
+	SetClassLongPtr(mainWindow.inst.getSystemHandle(), GCL_HICON, (LPARAM)LoadIcon(GetModuleHandle(NULL), MAKEINTRESOURCE(IDI_ICON5)));
 	sf::Vector2i mainWindowPos = mainWindow.inst.getPosition();
 	mainWindow.inst.setPosition(sf::Vector2i(-32000, -32000));
 	mainWindow.loop = bind(AuroraMain, &mainWindow.inst);
@@ -197,7 +210,6 @@ int main(){
 	SetWindowLong(trayWindow.inst.getSystemHandle(), GWL_EXSTYLE, WS_EX_TOOLWINDOW);
 
 	UI.loadFontFromMemory((void*)ComfortaaLight, ComfortaaLight_Size, "comfortaa");
-	
 
 	mainWindow.inst.setPosition(mainWindowPos);
 
