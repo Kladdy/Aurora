@@ -156,8 +156,14 @@ $RECYCLE.BIN/
 .DS_Store
 /External libs
 /Logo/colors
-/Logo
 /Aurora Setup.docx
 *.sln
 *.db
 *.opendb
+*.ai
+*.psd
+/Logo/AuroraThickBlue.png
+/Logo/Aurora512blue.ico
+/Logo/Aurora512.png
+/Logo/16text.png
+/Logo/16test.png
