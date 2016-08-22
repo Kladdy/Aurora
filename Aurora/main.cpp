@@ -9,11 +9,12 @@
 #include "stdafx.h"
 #include "resource.h"
 #include "UILib.h"
-#include "fonts.h"
-#include "pictures.h"
+#include "fonts.hpp"
+#include "pictures.hpp"
 #include "RoundedRectangleShape.hpp"
 
 using namespace std;
+
 
 const int TRAYWINDOW_WIDTH = 350;
 const int TRAYWINDOW_HEIGHT = 275;

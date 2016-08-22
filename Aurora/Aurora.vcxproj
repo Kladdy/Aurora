@@ -98,8 +98,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="enumser.h" />
-    <ClInclude Include="fonts.h" />
-    <ClInclude Include="pictures.h" />
+    <ClInclude Include="fonts.hpp" />
+    <ClInclude Include="pictures.hpp" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="RoundedRectangleShape.hpp" />
     <ClInclude Include="stdafx.h" />

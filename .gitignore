@@ -167,3 +167,8 @@ $RECYCLE.BIN/
 /Logo/Aurora512.png
 /Logo/16text.png
 /Logo/16test.png
+
+# Visual Studio project files
+*.vcxproj
+*.vcxproj.filters
+*.vcxproj.user
