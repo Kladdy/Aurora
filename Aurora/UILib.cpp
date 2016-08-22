@@ -12,8 +12,6 @@ using namespace std;
 
 bool updateSetup();
 
-sf::Clock fadeClock;
-
 struct clickableCheckBox{
 	int x1, y1, x2, y2;
 };
@@ -23,6 +21,8 @@ struct clickableDropDown{
 struct clickableRoundButton{
 	int x1, y1, x2, y2;
 };
+
+std::vector<string> activeCOMs;
 
 std::vector<sf::Sprite> loadedSprites;
 int amountSprites = 0;
@@ -36,12 +36,14 @@ std::vector<string> textureLabel;
 sf::Texture t;
 int amountTextures;
 
+sf::Clock fadeClock;
 std::vector<sf::RectangleShape> fadeRectangle;
 std::vector<int> fadeWaitDuration;
 std::vector<int> fade;
 std::vector<bool> doFade;
 std::vector<bool> fadeDir;
-bool fadeWait(int i) { return (fadeClock.getElapsedTime().asMilliseconds() > fadeWaitDuration[i]); }
+bool invertFade = false;
+int currentElapsed = 0;
 int amountFade = 0;
 
 std::vector<sf::Text> textLabel;
@@ -200,21 +202,30 @@ bool IL::mouseClicked(sf::Vector2i mousePos, int buttonClicked){
 		for (int i = 0; i < amountRoundedRectangle; i++){
 			if (mousePos.x >= roundButtonArea[i].x1 && mousePos.x <= roundButtonArea[i].x2 && mousePos.y >= roundButtonArea[i].y1 && mousePos.y <= roundButtonArea[i].y2){
 				if (i == 0){
-					if (setupProgress != 0){
+					if (setupProgress != 0 && !(doFade[0] && fadeDir[0])){
+						if (doFade[0]) {
+							currentElapsed = fadeClock.getElapsedTime().asMilliseconds();
+							invertFade = true;
+						}
 						doFade[0] = true;
 						fadeDir[0] = true;
 						increaseProgress = false;
+						fadeClock.restart();
 					}
 					return true;
 				} else if (i == 1){
-					if (setupProgress < 20){
+					if (setupProgress < 20 && !(doFade[0] && fadeDir[0])){
+						if (doFade[0]) {
+							currentElapsed = fadeClock.getElapsedTime().asMilliseconds();
+							invertFade = true;
+						}
 						doFade[0] = true;
 						fadeDir[0] = true;
 						increaseProgress = true;
+						fadeClock.restart();
 					}
 					return true;
 				}
-
 				else if (i > 1 && i < amountSupportedStrips + 2 && setupProgress == 1) {
 					selectedModel = i;
 					roundedRectangle[i].setOutlineColor(sf::Color(19, 161, 237, 220));
@@ -238,23 +249,29 @@ void getActiveCOM() {
 	int i = 0;
 #endif
 
-#ifndef NO_CENUMERATESERIAL_USING_SETUPAPI1
-	_tprintf(_T("Device Manager (SetupAPI - GUID_DEVINTERFACE_COMPORT) reports\n"));
-	if (CEnumerateSerial::UsingSetupAPI1(ports, names))
+#ifndef NO_CENUMERATESERIAL_USING_SETUPAPI2
+	if (CEnumerateSerial::UsingSetupAPI2(ports, names))
 	{
 #ifdef CENUMERATESERIAL_USE_STL
-		for (i = 0; i < ports.size(); i++)
-			_tprintf(_T("COM%u <%s>\n"), ports[i], names[i].c_str());
+		for (i = 0; i < ports.size(); i++) {
+			CString cs(names[i].c_str());
+			CT2CA pszConvertedAnsiString(cs);
+			string s(pszConvertedAnsiString);
+			string q("COM" + to_string(ports[i]) + " " + s);
+			cout << q << endl;
+			activeCOMs.push_back(q);
+		}
 #else
-		for (i = 0; i < ports.GetSize(); i++)
-			_tprintf(_T("COM%u <%s>\n"), ports[i], names[i].operator LPCTSTR());
+		for (i = 0; i < ports.GetSize(); i++) {
+			string q("COM" + to_string(ports[i]) + " " + names[i].operator LPCTSTR());
+			cout << q << endl;
+			activeCOMs.push_back(q);
+		}
 #endif
 	}
 	else
-		_tprintf(_T("CEnumerateSerial::UsingSetupAPI1 failed, Error:%u\n"), GetLastError());
+		_tprintf(_T("Checking for active COM-ports failed, Error:%u\n"), GetLastError());
 #endif
-
-	CoUninitialize();
 }
 bool IL::loadFont(string fontName, string label){
 	sf::Font font;
@@ -322,41 +339,53 @@ int getTexture(string texture) {
 	}
 	return 0;
 }
-bool IL::newFade(sf::Vector2f size, int speed){
+bool IL::newFade(sf::Vector2f size, int duration){
 	sf::RectangleShape rect = sf::RectangleShape(size);
 	rect.setFillColor(sf::Color(0, 0, 0, 0));
 	fadeRectangle.push_back(rect);
+	duration = duration / 2;
+
 	fade.push_back(0);
 	doFade.push_back(false);
 	fadeDir.push_back(true);
-	fadeWaitDuration.push_back(speed);
+	fadeWaitDuration.push_back(duration);
 	amountFade++;
-
 	return true;
 }
-bool IL::updateFade(int ID){
-	if (doFade[ID] && fadeDir[ID] && fade[ID] < 255 && fadeWait(ID)){
-		fade[ID]++;
-		fadeClock.restart();
-	}
-	else if (doFade[ID] && !fadeDir[ID] && fade[ID] > 0 && fadeWait(ID)){
-		fade[ID]--;
-		fadeClock.restart();
-	}
-	else if (doFade[ID] && fadeDir[ID] && fade[ID] == 255 && fadeWait(ID)){
-		if (increaseProgress)
-			setupProgress++;
-		else
-			setupProgress--;
-		updateSetup();
-		fadeDir[ID] = false;
-		fadeClock.restart();
-	}
-	else if (doFade[ID] && !fadeDir[ID] && fade[ID] == 0 && fadeWait(ID)){
-		doFade[ID] = false;
-		fadeDir[ID] = true;
-	}
+bool IL::updateFade(int ID) {
+	if (fadeDir[ID]) {
+		int i;
 
+		if (invertFade) 
+			i = (256 * (fadeClock.getElapsedTime().asMilliseconds() + fadeWaitDuration[ID] - currentElapsed) / fadeWaitDuration[ID]);
+		else
+			i = (256 * fadeClock.getElapsedTime().asMilliseconds() / fadeWaitDuration[ID]);
+
+		if (i < 256)
+			fade[ID] = i;
+		else {
+			if (increaseProgress)
+				setupProgress++;
+			else
+				setupProgress--;
+			updateSetup();
+			fadeDir[ID] = false;
+			fade[ID] = 255;
+			fadeClock.restart();
+			currentElapsed = 0;
+			invertFade = false;
+		}	
+	} else {
+		int i = 255 - (255 * fadeClock.getElapsedTime().asMilliseconds() / fadeWaitDuration[ID]);
+		if (i > 0)
+			fade[ID] = i;
+		else {
+			fade[ID] = 0;
+			doFade[ID] = false;
+			fadeDir[ID] = true;
+		}
+	}
+	
 	fadeRectangle[ID].setFillColor(sf::Color(0, 0, 0, fade[ID]));
 
 	return true;
@@ -528,7 +557,6 @@ bool IL::newRoundButton(sf::Vector2f position, sf::Vector2f size, int radius, sf
 	amountRoundedRectangle++;
 	return true;
 }
-
 bool IL::updateSetup() {
 	srand(time(NULL));
 

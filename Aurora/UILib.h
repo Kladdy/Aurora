@@ -12,7 +12,7 @@ public:
 	bool loadFont(string fontName, string fontLabel);
 	bool loadFontFromMemory(const void* data, int sizeInBytes, string fontLabel);
 	bool loadTextureFromMemory(const void* data, int sizeInBytes, string textureLabel);
-	bool newFade(sf::Vector2f size, int speed);
+	bool newFade(sf::Vector2f size, int durationInMilliSeconds);
 	bool updateFade(int ID);
 	bool newSprite(sf::Vector2f position, string textureLabel, sf::Vector2f scale = sf::Vector2f(1, 1));
 	bool newTextLabel(int x, int y, string text, string font, int size, sf::Color color = sf::Color::White);

@@ -12,24 +12,6 @@
 #include "fonts.h"
 #include "pictures.h"
 #include "RoundedRectangleShape.hpp"
-#include <atlstr.h>
-
-#define _WIN32_WINNT 0x501
-#include <objbase.h>
-#include <stdio.h> 
-
-#using <mscorlib.dll>
-using namespace System;
-
-extern "C" void mainCRTStartup();
-
-[System::STAThread]
-int mymain(){ //https://support.microsoft.com/en-us/kb/824480
-	HRESULT hr = CoInitialize(0);
-	mainCRTStartup();
-	CoUninitialize();
-	return 0;
-}
 
 using namespace std;
 
@@ -45,7 +27,7 @@ const int SETUPWINDOW_HEIGHT = 400;
 
 const int AMOUNT_SUPPORTEDSTRIPS = 6;
 
-CTrayIcon trayIcon("Aurora", true, LoadIcon((HINSTANCE)GetModuleHandle(NULL), MAKEINTRESOURCE(IDI_ICON5)));
+CTrayIcon trayIcon("Aurora", true, LoadIcon((HINSTANCE)GetModuleHandle(NULL), MAKEINTRESOURCE(IDI_ICON1)));
 sf::Vector2i getTaskbarPos();
 sf::Vector2i mousePos;
 sf::Clock closeTrayClock;
@@ -195,7 +177,7 @@ void initializeSetup(){
 		UI.newRoundButton(sf::Vector2f(10 + 149 * i, 135), sf::Vector2f(140, 196), 10, sf::Color(120, 120, 120, 180));
 	}
 
-	UI.newFade(sf::Vector2f(SETUPWINDOW_WIDTH, SETUPWINDOW_HEIGHT), 1);
+	UI.newFade(sf::Vector2f(SETUPWINDOW_WIDTH, SETUPWINDOW_HEIGHT), 600);
 
 	UI.updateSetup();
 
@@ -214,7 +196,7 @@ int main(){
 	else{
 		mainWindow.inst.create(sf::VideoMode(SETUPWINDOW_WIDTH, SETUPWINDOW_HEIGHT), "Aurora Setup", sf::Style::Close, settings);
 	}
-	SetClassLongPtr(mainWindow.inst.getSystemHandle(), GCL_HICON, (LPARAM)LoadIcon(GetModuleHandle(NULL), MAKEINTRESOURCE(IDI_ICON5)));
+	SetClassLongPtr(mainWindow.inst.getSystemHandle(), GCL_HICON, (LPARAM)LoadIcon(GetModuleHandle(NULL), MAKEINTRESOURCE(IDI_ICON1)));
 	sf::Vector2i mainWindowPos = mainWindow.inst.getPosition();
 	mainWindow.inst.setPosition(sf::Vector2i(-32000, -32000));
 	mainWindow.loop = bind(AuroraMain, &mainWindow.inst);
