@@ -349,7 +349,7 @@ bool IL::newFade(sf::Vector2f size, int duration){
 	amountFade++;
 	return true;
 }
-bool updateFade(int ID) {
+bool IL::updateFade(int ID) {
 	if (fadeDir[ID]) {
 		int i;
 
@@ -560,7 +560,7 @@ bool IL::newRoundButton(sf::Vector2f position, sf::Vector2f size, int radius, sf
 		newRB(position, size, radius, color, d);
 	return true;
 }
-bool updateSetup() {
+bool IL::updateSetup() {
 	srand(time(NULL));
 
 	int c;
@@ -590,7 +590,6 @@ bool updateSetup() {
 		break;
 
 	case 1:
-		closeAurora = true;
 		textLabel[0].setString("Aurora - Setup: RGB Strip Model");
 		textLabel[1].setString("To use Aurora, you need to know what kind of RGB strip that you are using. There are plenty of different \nmodels out there, and the currently supported ones are displayed below."\
 			" If you have any RGB strip that is \nnot yet supported, throw me a message and I will add it for you. Selecting the proper RGB strip model is \nessential for making sure Aurora can do its magic with it.");
@@ -625,11 +624,6 @@ bool updateSetup() {
 		break;
 	}
 	
-
-	return true;
-}
-bool IL::uS() {
-	updateSetup();
 
 	return true;
 }

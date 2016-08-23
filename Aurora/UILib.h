@@ -21,7 +21,8 @@ public:
 	bool newCheckbox(int x, int y, int vertexLenght, sf::Color color, string text, string font, int size, sf::Color colorText = sf::Color::White, int location = 0);
 	bool newDropDown(int x, int y, string defaultText, std::vector<string> elements, string font, int size, sf::Color colorText = sf::Color::White, sf::Color colorFill = sf::Color::Black, sf::Color colorBorder = sf::Color::White);
 	bool newRoundButton(sf::Vector2f position, sf::Vector2f size, int radius, sf::Color color, sf::Drawable* d = NULL);
-	bool uS();
+	bool updateSetup();
+	bool updateFade(int ID);
 
 private:
 

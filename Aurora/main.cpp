@@ -186,7 +186,7 @@ void initializeSetup(){
 	}
 
 	UI.newFade(sf::Vector2f(SETUPWINDOW_WIDTH, SETUPWINDOW_HEIGHT), 600);
-	UI.uS();
+	UI.updateSetup();
 
 	runSetup = false;
 }
