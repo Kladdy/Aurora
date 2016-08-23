@@ -11,6 +11,7 @@
 using namespace std;
 
 bool updateSetup();
+void getActiveCOM();
 
 struct clickableCheckBox{
 	int x1, y1, x2, y2;
@@ -22,7 +23,7 @@ struct clickableRoundButton{
 	int x1, y1, x2, y2;
 };
 
-std::vector<string> activeCOMs;
+
 
 std::vector<sf::Sprite> loadedSprites;
 int amountSprites = 0;
@@ -83,6 +84,10 @@ int lastColor = -1;
 int amountSupportedStrips;
 int selectedModel;
 
+std::vector<string> activeCOMs;
+int amountActiveCOMs = 0;
+int selectedCOM = -1;
+
 bool IL::libSetup(int amountStrips, string path){
 	
 	amountSupportedStrips = amountStrips;
@@ -137,17 +142,22 @@ bool IL::render(sf::RenderWindow& window){
 		}
 	}
 	for (int i = 0; i < amountRoundedRectangle; i++){
-		if (i > 1 && i < amountSupportedStrips + 2) {
+		if (i >= 0 && i < (amountRoundedRectangle - amountSupportedStrips - amountActiveCOMs)) {
+			window.draw(roundedRectangle[i]);
+			if (roundedRectangleDrawable[i] != NULL)
+				window.draw(*roundedRectangleDrawable[i]);
+		}
+		if (i > (amountRoundedRectangle - amountSupportedStrips - amountActiveCOMs - 1) && i < (amountRoundedRectangle - amountActiveCOMs)) {
 			if (setupProgress == 1)
 				window.draw(roundedRectangle[i]);
-		} else {
-			window.draw(roundedRectangle[i]);
-			if (roundedRectangleDrawable[i] != NULL) {
-				window.draw(*roundedRectangleDrawable[i]);
+		}
+		if (i > (amountRoundedRectangle - amountActiveCOMs - 1) && i < amountRoundedRectangle) {
+			if (setupProgress == 2 && amountActiveCOMs != 0) {
+				window.draw(roundedRectangle[i]);
 			}
 		}
-		
 	}
+
 
 
 
@@ -226,8 +236,13 @@ bool IL::mouseClicked(sf::Vector2i mousePos, int buttonClicked){
 					}
 					return true;
 				}
-				else if (i > 1 && i < amountSupportedStrips + 2 && setupProgress == 1) {
+				else if (i > (amountRoundedRectangle - amountSupportedStrips - amountActiveCOMs - 1) && i < (amountRoundedRectangle - amountActiveCOMs) && setupProgress == 1) {
 					selectedModel = i;
+					roundedRectangle[i].setOutlineColor(sf::Color(19, 161, 237, 220));
+					return true;
+				}
+				else if (i > (amountRoundedRectangle - amountActiveCOMs - 1) && i < amountRoundedRectangle && setupProgress == 2) {
+					selectedCOM = i;
 					roundedRectangle[i].setOutlineColor(sf::Color(19, 161, 237, 220));
 					return true;
 				}
@@ -236,42 +251,6 @@ bool IL::mouseClicked(sf::Vector2i mousePos, int buttonClicked){
 	}
 	cout << "X: " << mousePos.x << " Y: " << mousePos.y << " B: " << buttonClicked << endl;
 	return false;
-}
-void getActiveCOM() {
-	CEnumerateSerial::CPortsArray ports;
-	CEnumerateSerial::CNamesArray names;
-#ifdef CENUMERATESERIAL_USE_STL
-	size_t i = 0;
-	UNREFERENCED_PARAMETER(i);
-#elif defined _AFX
-	INT_PTR i = 0;
-#else
-	int i = 0;
-#endif
-
-#ifndef NO_CENUMERATESERIAL_USING_SETUPAPI2
-	if (CEnumerateSerial::UsingSetupAPI2(ports, names))
-	{
-#ifdef CENUMERATESERIAL_USE_STL
-		for (i = 0; i < ports.size(); i++) {
-			CString cs(names[i].c_str());
-			CT2CA pszConvertedAnsiString(cs);
-			string s(pszConvertedAnsiString);
-			string q("COM" + to_string(ports[i]) + " " + s);
-			cout << q << endl;
-			activeCOMs.push_back(q);
-		}
-#else
-		for (i = 0; i < ports.GetSize(); i++) {
-			string q("COM" + to_string(ports[i]) + " " + names[i].operator LPCTSTR());
-			cout << q << endl;
-			activeCOMs.push_back(q);
-		}
-#endif
-	}
-	else
-		_tprintf(_T("Checking for active COM-ports failed, Error:%u\n"), GetLastError());
-#endif
 }
 bool IL::loadFont(string fontName, string label){
 	sf::Font font;
@@ -538,7 +517,7 @@ bool IL::newDropDown(int x, int y, string defaultText, std::vector<string> eleme
 	amountDropDown++;
 	return true;
 }
-bool IL::newRoundButton(sf::Vector2f position, sf::Vector2f size, int radius, sf::Color color, sf::Drawable* d){
+bool newRB(sf::Vector2f position, sf::Vector2f size, int radius, sf::Color color, sf::Drawable* d = NULL) {
 	sf::RoundedRectangleShape roundRect;
 
 	roundRect = sf::RoundedRectangleShape(size, radius, 10);
@@ -550,11 +529,17 @@ bool IL::newRoundButton(sf::Vector2f position, sf::Vector2f size, int radius, sf
 	clickableRoundButton clickArea = {
 		position.x, position.y, position.x + size.x, position.y + size.y
 	};
-	
-	roundedRectangleDrawable.push_back(d);
 	roundedRectangle.push_back(roundRect);
+	roundedRectangleDrawable.push_back(d);
 	roundButtonArea.push_back(clickArea);
 	amountRoundedRectangle++;
+	return true;
+}
+bool IL::newRoundButton(sf::Vector2f position, sf::Vector2f size, int radius, sf::Color color, sf::Drawable* d){
+	if (d == NULL)
+		newRB(position, size, radius, color);
+	else
+		newRB(position, size, radius, color, d);
 	return true;
 }
 bool IL::updateSetup() {
@@ -596,6 +581,8 @@ bool IL::updateSetup() {
 		textLabel[0].setString("Aurora - Setup: USB COM-port");
 		textLabel[1].setString("");
 		getActiveCOM();
+		if (selectedCOM >= 0) 
+			roundedRectangle[selectedCOM].setOutlineColor(sf::Color(19, 161, 237, 220));
 		break;
 
 	case 3:
@@ -625,17 +612,74 @@ bool IL::updateSetup() {
 }
 bool IL::highlightRoundbox(sf::Vector2i mousePos) {
 	if (setupProgress == 1) {
-		for (int r = 2; r < amountSupportedStrips + 2; r++) {
+		for (int r = (amountRoundedRectangle - amountSupportedStrips - amountActiveCOMs); r < (amountRoundedRectangle - amountActiveCOMs); r++) {
 			if (r != selectedModel) 
 				roundedRectangle[r].setOutlineColor(sf::Color(120, 120, 120, 180));
 		}
-		for (int i = 2; i < amountSupportedStrips + 2; i++) {			
+		for (int i = (amountRoundedRectangle - amountSupportedStrips - amountActiveCOMs); i < (amountRoundedRectangle - amountActiveCOMs); i++) {
 			if (mousePos.x >= roundButtonArea[i].x1 && mousePos.x <= roundButtonArea[i].x2 && mousePos.y >= roundButtonArea[i].y1 && mousePos.y <= roundButtonArea[i].y2) {		
 				if (i != selectedModel)
+					roundedRectangle[i].setOutlineColor(sf::Color(242, 242, 242, 210));
+			}
+		}
+	} else if (setupProgress == 2) {
+		for (int r = (amountRoundedRectangle - amountActiveCOMs); r < amountRoundedRectangle; r++) {
+			if (r != selectedCOM)
+				roundedRectangle[r].setOutlineColor(sf::Color(120, 120, 120, 180));
+		}
+		for (int i = (amountRoundedRectangle - amountActiveCOMs); i < amountRoundedRectangle; i++) {
+			if (mousePos.x >= roundButtonArea[i].x1 && mousePos.x <= roundButtonArea[i].x2 && mousePos.y >= roundButtonArea[i].y1 && mousePos.y <= roundButtonArea[i].y2) {
+				if (i != selectedCOM)
 					roundedRectangle[i].setOutlineColor(sf::Color(242, 242, 242, 210));
 			}
 		}
 	}
 	
 	return true;
+}
+void getActiveCOM() {
+	CEnumerateSerial::CPortsArray ports;
+	CEnumerateSerial::CNamesArray names;
+#ifdef CENUMERATESERIAL_USE_STL
+	size_t i = 0;
+	UNREFERENCED_PARAMETER(i);
+#elif defined _AFX
+	INT_PTR i = 0;
+#else
+	int i = 0;
+#endif
+
+#ifndef NO_CENUMERATESERIAL_USING_SETUPAPI2
+	if (CEnumerateSerial::UsingSetupAPI2(ports, names)){
+		roundedRectangle._Pop_back_n(amountActiveCOMs);
+		roundedRectangleDrawable._Pop_back_n(amountActiveCOMs);
+		roundButtonArea._Pop_back_n(amountActiveCOMs);
+		amountRoundedRectangle -= amountActiveCOMs;
+		activeCOMs.clear();
+		amountActiveCOMs = 0;
+
+#ifdef CENUMERATESERIAL_USE_STL
+		for (i = 0; i < ports.size(); i++) {
+			CString cs(names[i].c_str());
+			CT2CA pszConvertedAnsiString(cs);
+			string s(pszConvertedAnsiString);
+			string q("COM" + to_string(ports[i]) + " " + s);
+			cout << q << endl;
+			newRB(sf::Vector2f(10 + 149 * amountActiveCOMs, 135), sf::Vector2f(140, 196), 10, sf::Color(120, 120, 120, 180));
+			activeCOMs.push_back(q);
+			amountActiveCOMs++;
+		}
+#else
+		for (i = 0; i < ports.GetSize(); i++) {
+			string q("COM" + to_string(ports[i]) + " " + names[i].operator LPCTSTR());
+			cout << q << endl;
+			newRB(sf::Vector2f(10 + 149 * amountActiveCOMs, 135), sf::Vector2f(140, 196), 10, sf::Color(120, 120, 120, 180));
+			activeCOMs.push_back(q);
+			amountActiveCOMs++;
+		}
+#endif
+	}
+	else
+		_tprintf(_T("Checking for active COM-ports failed, Error:%u\n"), GetLastError());
+#endif
 }

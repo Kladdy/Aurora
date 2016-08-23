@@ -15,7 +15,6 @@
 
 using namespace std;
 
-const std::string git = "sucks";
 const int TRAYWINDOW_WIDTH = 350;
 const int TRAYWINDOW_HEIGHT = 275;
 const int TRAYWINDOW_DISTANCE = 15;
