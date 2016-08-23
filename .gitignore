@@ -172,3 +172,12 @@ $RECYCLE.BIN/
 *.vcxproj
 *.vcxproj.filters
 *.vcxproj.user
+/Resources/colors
+/Resources/16test.png
+/Resources/16text.png
+/Resources/ArduinoIcon256.png
+/Resources/ArduinoLogo.png
+/Resources/Aurora512.png
+/Resources/Aurora512blue.ico
+/Resources/AuroraIcon256second.png
+/Resources/AuroraThickBlue.png

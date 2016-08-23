@@ -11,7 +11,9 @@
 using namespace std;
 
 bool updateSetup();
+bool updateFade(int ID);
 void getActiveCOM();
+bool highlightRoundbox(sf::Vector2i mousePos);
 
 struct clickableCheckBox{
 	int x1, y1, x2, y2;
@@ -23,53 +25,51 @@ struct clickableRoundButton{
 	int x1, y1, x2, y2;
 };
 
-
-
-std::vector<sf::Sprite> loadedSprites;
+vector<sf::Sprite> loadedSprites;
 int amountSprites = 0;
 
-std::vector<sf::Font> textFont;
-std::vector<string> fontLabel;
+vector<sf::Font> textFont;
+vector<string> fontLabel;
 int amountTextFont = 0;
 
-std::vector<sf::Texture> loadedTextures;
-std::vector<string> textureLabel;
+vector<sf::Texture> loadedTextures;
+vector<string> textureLabel;
 sf::Texture t;
 int amountTextures;
 
 sf::Clock fadeClock;
-std::vector<sf::RectangleShape> fadeRectangle;
-std::vector<int> fadeWaitDuration;
-std::vector<int> fade;
-std::vector<bool> doFade;
-std::vector<bool> fadeDir;
+vector<sf::RectangleShape> fadeRectangle;
+vector<int> fadeWaitDuration;
+vector<int> fade;
+vector<bool> doFade;
+vector<bool> fadeDir;
 bool invertFade = false;
 int currentElapsed = 0;
 int amountFade = 0;
 
-std::vector<sf::Text> textLabel;
+vector<sf::Text> textLabel;
 int amountTextLabel = 0;
 
-std::vector<sf::RectangleShape> checkboxFrame;
-std::vector<sf::RectangleShape> checkboxFill;
-std::vector<clickableCheckBox> checkboxArea;
-std::vector<bool> checkedBox;
-std::vector<bool> textedBox;
-std::vector<sf::Text> checkboxText;
+vector<sf::RectangleShape> checkboxFrame;
+vector<sf::RectangleShape> checkboxFill;
+vector<clickableCheckBox> checkboxArea;
+vector<bool> checkedBox;
+vector<bool> textedBox;
+vector<sf::Text> checkboxText;
 int amountCheckbox = 0;
 int amountCheckboxText = 0;
 int fillDistance = 3;
 
-std::vector<sf::RectangleShape> dropDownBox;
-std::vector<std::vector<sf::Text>> dropDownTexts;
-std::vector<sf::CircleShape> downTria;
-std::vector<clickableDropDown> dropDownArea;
+vector<sf::RectangleShape> dropDownBox;
+vector<vector<sf::Text>> dropDownTexts;
+vector<sf::CircleShape> downTria;
+vector<clickableDropDown> dropDownArea;
 int amountDropDown;
 int borderDistance = 4;
 
-std::vector<sf::RoundedRectangleShape> roundedRectangle;
-std::vector<sf::Drawable*> roundedRectangleDrawable;
-std::vector<clickableRoundButton> roundButtonArea;
+vector<sf::RoundedRectangleShape> roundedRectangle;
+vector<sf::Drawable*> roundedRectangleDrawable;
+vector<clickableRoundButton> roundButtonArea;
 int amountRoundedRectangle;
 
 string fontPath = "";
@@ -77,19 +77,22 @@ string fontPath = "";
 int setupProgress = 0;
 bool increaseProgress = false;
 
-std::vector<sf::Color> goodColors;
-std::vector<sf::Color> evilColors;
+vector<sf::Color> goodColors;
+vector<sf::Color> evilColors;
 int lastColor = -1;
 
 int amountSupportedStrips;
 int selectedModel;
 
-std::vector<string> activeCOMs;
+vector<string> namesCOM;
+vector<string> portsCOM;
+vector<sf::Text> namesCOMText;
+vector<sf::Text> portsCOMText;
+vector<bool> isArduino;
 int amountActiveCOMs = 0;
 int selectedCOM = -1;
 
 bool IL::libSetup(int amountStrips, string path){
-	
 	amountSupportedStrips = amountStrips;
 
 	if (path != "c") {
@@ -109,13 +112,28 @@ bool IL::libSetup(int amountStrips, string path){
 
 	return true;
 }
-bool IL::render(sf::RenderWindow& window){
+bool IL::render(sf::RenderWindow& window, sf::Vector2i mousePos) {
 	amountCheckboxText = 0;
+	loadedSprites[1].setPosition(sf::Vector2f(-300, -300));
+
+	if (setupProgress == 1 || setupProgress == 2)
+		highlightRoundbox(mousePos);
+
 	for (int i = 0; i < amountSprites; i++) {
 		if (i == 0) {
 			if (setupProgress == 0)
 				window.draw(loadedSprites[i]);
-		} else {
+		} else if (i == 1) {
+			if (setupProgress == 2) {
+				for (int c = 0; c < isArduino.size(); c++) {
+					if (isArduino[c]) {
+						loadedSprites[c].setPosition(sf::Vector2f(105 + 199 * c, 200));
+						window.draw(loadedSprites[c]);
+					}
+				}
+			}
+		}
+		else {
 			window.draw(loadedSprites[i]);
 		}
 	}
@@ -146,14 +164,14 @@ bool IL::render(sf::RenderWindow& window){
 			window.draw(roundedRectangle[i]);
 			if (roundedRectangleDrawable[i] != NULL)
 				window.draw(*roundedRectangleDrawable[i]);
-		}
-		if (i > (amountRoundedRectangle - amountSupportedStrips - amountActiveCOMs - 1) && i < (amountRoundedRectangle - amountActiveCOMs)) {
+		} else if (i > (amountRoundedRectangle - amountSupportedStrips - amountActiveCOMs - 1) && i < (amountRoundedRectangle - amountActiveCOMs)) {
 			if (setupProgress == 1)
 				window.draw(roundedRectangle[i]);
-		}
-		if (i > (amountRoundedRectangle - amountActiveCOMs - 1) && i < amountRoundedRectangle) {
+		} else if (i > (amountRoundedRectangle - amountActiveCOMs - 1) && i < amountRoundedRectangle) {
 			if (setupProgress == 2 && amountActiveCOMs != 0) {
 				window.draw(roundedRectangle[i]);
+				window.draw(namesCOMText[i - amountActiveCOMs - amountSupportedStrips]);
+				window.draw(portsCOMText[i - amountActiveCOMs - amountSupportedStrips]);
 			}
 		}
 	}
@@ -252,7 +270,7 @@ bool IL::mouseClicked(sf::Vector2i mousePos, int buttonClicked){
 	cout << "X: " << mousePos.x << " Y: " << mousePos.y << " B: " << buttonClicked << endl;
 	return false;
 }
-bool IL::loadFont(string fontName, string label){
+bool IL::loadFont(string fontName, string label) {
 	sf::Font font;
 
 	if (!font.loadFromFile(fontPath + fontName)){
@@ -331,7 +349,7 @@ bool IL::newFade(sf::Vector2f size, int duration){
 	amountFade++;
 	return true;
 }
-bool IL::updateFade(int ID) {
+bool updateFade(int ID) {
 	if (fadeDir[ID]) {
 		int i;
 
@@ -453,8 +471,8 @@ bool IL::newCheckbox(int x, int y, int vertexLenght, sf::Color color, string tex
 	amountCheckbox++;
 	return true;
 }
-bool IL::newDropDown(int x, int y, string defaultText, std::vector<string> elements, string font, int size, sf::Color colorText, sf::Color colorFill, sf::Color colorBorder){
-	std::vector<sf::Text> textVector;
+bool IL::newDropDown(int x, int y, string defaultText, vector<string> elements, string font, int size, sf::Color colorText, sf::Color colorFill, sf::Color colorBorder){
+	vector<sf::Text> textVector;
 	dropDownTexts.push_back(textVector);
 
 	sf::Text defText;
@@ -542,7 +560,7 @@ bool IL::newRoundButton(sf::Vector2f position, sf::Vector2f size, int radius, sf
 		newRB(position, size, radius, color, d);
 	return true;
 }
-bool IL::updateSetup() {
+bool updateSetup() {
 	srand(time(NULL));
 
 	int c;
@@ -572,6 +590,7 @@ bool IL::updateSetup() {
 		break;
 
 	case 1:
+		closeAurora = true;
 		textLabel[0].setString("Aurora - Setup: RGB Strip Model");
 		textLabel[1].setString("To use Aurora, you need to know what kind of RGB strip that you are using. There are plenty of different \nmodels out there, and the currently supported ones are displayed below."\
 			" If you have any RGB strip that is \nnot yet supported, throw me a message and I will add it for you. Selecting the proper RGB strip model is \nessential for making sure Aurora can do its magic with it.");
@@ -579,10 +598,9 @@ bool IL::updateSetup() {
 
 	case 2:
 		textLabel[0].setString("Aurora - Setup: USB COM-port");
-		textLabel[1].setString("");
+		textLabel[1].setString("Aurora talks to your Arduino via the USB-Serial interface. In order to be detected, the Arduino needs to be \nconnected with a USB cable to your computer. Aurora will autonomously attempt"\
+			" to identify any feasible \ncandidate and, if it finds one, highlight its button below. Bluetooth support is planned for a future release, \nbut until then, selecting the right COM-port below is the way to go.");
 		getActiveCOM();
-		if (selectedCOM >= 0) 
-			roundedRectangle[selectedCOM].setOutlineColor(sf::Color(19, 161, 237, 220));
 		break;
 
 	case 3:
@@ -610,7 +628,12 @@ bool IL::updateSetup() {
 
 	return true;
 }
-bool IL::highlightRoundbox(sf::Vector2i mousePos) {
+bool IL::uS() {
+	updateSetup();
+
+	return true;
+}
+bool highlightRoundbox(sf::Vector2i mousePos) {
 	if (setupProgress == 1) {
 		for (int r = (amountRoundedRectangle - amountSupportedStrips - amountActiveCOMs); r < (amountRoundedRectangle - amountActiveCOMs); r++) {
 			if (r != selectedModel) 
@@ -628,11 +651,15 @@ bool IL::highlightRoundbox(sf::Vector2i mousePos) {
 				roundedRectangle[r].setOutlineColor(sf::Color(120, 120, 120, 180));
 		}
 		for (int i = (amountRoundedRectangle - amountActiveCOMs); i < amountRoundedRectangle; i++) {
+			if (isArduino[i - (amountRoundedRectangle - amountActiveCOMs)])
+				roundedRectangle[i].setOutlineColor(sf::Color(25, 151, 156, 220));
 			if (mousePos.x >= roundButtonArea[i].x1 && mousePos.x <= roundButtonArea[i].x2 && mousePos.y >= roundButtonArea[i].y1 && mousePos.y <= roundButtonArea[i].y2) {
 				if (i != selectedCOM)
 					roundedRectangle[i].setOutlineColor(sf::Color(242, 242, 242, 210));
 			}
 		}
+		if (selectedCOM >= 0)
+			roundedRectangle[selectedCOM].setOutlineColor(sf::Color(19, 161, 237, 220));
 	}
 	
 	return true;
@@ -655,26 +682,56 @@ void getActiveCOM() {
 		roundedRectangleDrawable._Pop_back_n(amountActiveCOMs);
 		roundButtonArea._Pop_back_n(amountActiveCOMs);
 		amountRoundedRectangle -= amountActiveCOMs;
-		activeCOMs.clear();
+		namesCOM.clear();
+		isArduino.clear();
 		amountActiveCOMs = 0;
 
 #ifdef CENUMERATESERIAL_USE_STL
 		for (i = 0; i < ports.size(); i++) {
+			string q("COM" + to_string(ports[i]));
 			CString cs(names[i].c_str());
 			CT2CA pszConvertedAnsiString(cs);
 			string s(pszConvertedAnsiString);
-			string q("COM" + to_string(ports[i]) + " " + s);
-			cout << q << endl;
-			newRB(sf::Vector2f(10 + 149 * amountActiveCOMs, 135), sf::Vector2f(140, 196), 10, sf::Color(120, 120, 120, 180));
-			activeCOMs.push_back(q);
+			cout << q << " " << s << endl;
+			newRB(sf::Vector2f(10 + 199 * amountActiveCOMs, 135), sf::Vector2f(190, 196), 10, sf::Color(120, 120, 120, 180));
+			namesCOM.push_back(q);
+			portsCOM.push_back(s);
+			
+			sf::Text labelName;
+			labelName.setString(s);
+			labelName.setCharacterSize(18);
+			setFont(labelName, "comfortaa");
+			if (labelName.getGlobalBounds().width > 170) {
+				do {
+					labelName.setCharacterSize(labelName.getCharacterSize() - 1);
+				} while (labelName.getGlobalBounds().width > 170);
+			}
+			labelName.setOrigin(labelName.getGlobalBounds().width / 2, 0);
+			labelName.setPosition(sf::Vector2f(105 + 199 * amountActiveCOMs, 279));
+			namesCOMText.push_back(labelName);
+			
+			sf::Text labelPort;
+			labelPort.setString(q);
+			labelPort.setCharacterSize(19);
+			setFont(labelPort, "comfortaa");
+			labelPort.setOrigin(labelPort.getGlobalBounds().width / 2, 0);
+			labelPort.setPosition(sf::Vector2f(105 + 199 * amountActiveCOMs, 300));
+			portsCOMText.push_back(labelPort);
+
 			amountActiveCOMs++;
+
+			size_t found = s.find("Arduino");
+			if (found != std::string::npos)
+				isArduino.push_back(true);
+			else
+				isArduino.push_back(false);
 		}
 #else
 		for (i = 0; i < ports.GetSize(); i++) {
 			string q("COM" + to_string(ports[i]) + " " + names[i].operator LPCTSTR());
 			cout << q << endl;
 			newRB(sf::Vector2f(10 + 149 * amountActiveCOMs, 135), sf::Vector2f(140, 196), 10, sf::Color(120, 120, 120, 180));
-			activeCOMs.push_back(q);
+			namesCOM.push_back(q);
 			amountActiveCOMs++;
 		}
 #endif

@@ -13,6 +13,9 @@
 #include "pictures.hpp"
 #include "RoundedRectangleShape.hpp"
 
+#include <chrono>
+#include <thread>
+
 using namespace std;
 
 const int TRAYWINDOW_WIDTH = 350;
@@ -25,7 +28,7 @@ const int MAINWINDOW_HEIGHT = 576;
 const int SETUPWINDOW_WIDTH = 1024;
 const int SETUPWINDOW_HEIGHT = 400;
 
-const int AMOUNT_SUPPORTEDSTRIPS = 6;
+const int AMOUNT_SUPPORTEDSTRIPS = 4;
 
 CTrayIcon trayIcon("Aurora", true, LoadIcon((HINSTANCE)GetModuleHandle(NULL), MAKEINTRESOURCE(IDI_ICON1)));
 sf::Vector2i getTaskbarPos();
@@ -124,8 +127,7 @@ void AuroraMain(sf::RenderWindow* w){
 
 	window.clear(sf::Color::Black);
 
-	UI.highlightRoundbox(mousePos);
-	UI.render(window);
+	UI.render(window, mousePos);
 
 	window.display();
 }
@@ -154,13 +156,18 @@ sf::Vector2i getTaskbarPos(){
 
 void initializeSetup(){
 
+	UI.loadFontFromMemory((void*)ComfortaaLight, ComfortaaLight_Size, "comfortaa");
+
 	UI.newTextLabel(10, 7, "Aurora - Setup: Introduction", "comfortaa", 30, sf::Color::White);
 	UI.newTextLabel(10, 45, "Greetings! I will guide you through how to properly set up Aurora. If this is your first time using the program, \nplease read the contents of this walkthrough carefully."\
 		"You can re-run the setup-process by *insert feature \nto repeat setup here*. Use the arrows below in order to maneuver your way through the different options."\
 		"\n\nIf you are unsure about which settings to opt for, or you believe that something is missing or not working as \nintended, don't hesitate to contact me. *Insert methods of contacting me here*", "comfortaa", 18);
 
 	UI.loadTextureFromMemory((void*)AuroraLogo256, AuroraLogo256_Size, "auroralogo256");
+	UI.loadTextureFromMemory((void*)ArduinoLogo, ArduinoLogo_Size, "arduinologo256");
+
 	UI.newSprite(sf::Vector2f(512, 280), "auroralogo256", sf::Vector2f(0.7f, 0.7f));
+	UI.newSprite(sf::Vector2f(-300, -300), "arduinologo256", sf::Vector2f(1.0f, 1.0f));
 
 	backTriangle.setFillColor(sf::Color(255, 191, 54, 200));
 	backTriangle.setOrigin(backTriangle.getGlobalBounds().width / 2, backTriangle.getGlobalBounds().height / 2);
@@ -179,8 +186,7 @@ void initializeSetup(){
 	}
 
 	UI.newFade(sf::Vector2f(SETUPWINDOW_WIDTH, SETUPWINDOW_HEIGHT), 600);
-
-	UI.updateSetup();
+	UI.uS();
 
 	runSetup = false;
 }
@@ -212,24 +218,20 @@ int main(){
 	trayIcon.SetListener(TrayIcon1_OnMessage);
 	SetWindowLong(trayWindow.inst.getSystemHandle(), GWL_EXSTYLE, WS_EX_TOOLWINDOW);
 
-	UI.loadFontFromMemory((void*)ComfortaaLight, ComfortaaLight_Size, "comfortaa");
-
 	mainWindow.inst.setPosition(mainWindowPos);
 
 	MSG msg;
-	
-	
 
 	while (1) {
 
-		cout << ite << endl;
-		ite++;
-
-		if (limitClock.getElapsedTime().asMilliseconds() > 10) {
+		if (limitClock.getElapsedTime().asMilliseconds() > 20) {
 			limitClock.restart();
 
 			if (runSetup)
 				initializeSetup();
+
+			if (UI.closeAurora)
+				return 0;
 
 			if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
 				TranslateMessage(&msg);
@@ -237,7 +239,7 @@ int main(){
 			}
 		}
 			
-		if (mainLimitClock.getElapsedTime().asMilliseconds() > 5) {
+		if (mainLimitClock.getElapsedTime().asMilliseconds() > 10) {
 			mainLimitClock.restart();
 
 			if (mainWindow.isVisible())
@@ -246,6 +248,7 @@ int main(){
 			if (trayWindow.isVisible())
 				trayWindow.loop();
 		}
+		this_thread::sleep_for(chrono::milliseconds(2));
 	}
 	return 0;
 }
