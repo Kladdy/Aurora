@@ -32,6 +32,7 @@ sf::Vector2i getTaskbarPos();
 sf::Vector2i mousePos;
 sf::Clock closeTrayClock;
 sf::Clock limitClock;
+sf::Clock mainLimitClock;
 
 sf::CircleShape backTriangle(20, 3);
 sf::CircleShape forwardTriangle(20, 3);
@@ -186,6 +187,8 @@ void initializeSetup(){
 
 int main(){
 
+	int ite = 0;
+
 	UI.libSetup(AMOUNT_SUPPORTEDSTRIPS);
 
 	//Initialize the main window
@@ -214,7 +217,14 @@ int main(){
 	mainWindow.inst.setPosition(mainWindowPos);
 
 	MSG msg;
+	
+	
+
 	while (1) {
+
+		cout << ite << endl;
+		ite++;
+
 		if (limitClock.getElapsedTime().asMilliseconds() > 10) {
 			limitClock.restart();
 
@@ -227,11 +237,15 @@ int main(){
 			}
 		}
 			
-		if (mainWindow.isVisible())
-			mainWindow.loop();
+		if (mainLimitClock.getElapsedTime().asMilliseconds() > 5) {
+			mainLimitClock.restart();
 
-		if (trayWindow.isVisible())
-			trayWindow.loop();
+			if (mainWindow.isVisible())
+				mainWindow.loop();
+
+			if (trayWindow.isVisible())
+				trayWindow.loop();
+		}
 	}
 	return 0;
 }
