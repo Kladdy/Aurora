@@ -56,7 +56,6 @@ Window mainWindow;
 void TrayIcon1_OnMessage(CTrayIcon* pTrayIcon, UINT uMsg){
 
 	if (uMsg == WM_LBUTTONUP || uMsg == WM_RBUTTONUP){
-		cout << "TrayIcon: Clicked" << endl;
 		if (!trayWindow.isVisible() && closeTrayClock.getElapsedTime().asMilliseconds() > 200){
 			sf::Vector2i trayWindowPos = getTaskbarPos();
 			SetWindowPos(trayWindow.inst.getSystemHandle(),
@@ -97,7 +96,6 @@ void AuroraTray(sf::RenderWindow* w){
 		if (event.type == sf::Event::Closed)
 			window.close();
 		if (event.type == sf::Event::MouseButtonPressed && sf::Mouse::isButtonPressed(sf::Mouse::Left)){
-			cout << "TrayWindow: Left click" << endl;
 			mainWindow.inst.setVisible(true);
 			SetForegroundWindow(mainWindow.inst.getSystemHandle());
 			focusMain = true;
@@ -120,8 +118,6 @@ void AuroraMain(sf::RenderWindow* w){
 			UI.mouseClicked(mousePos, 1);
 		}
 	}
-
-	
 
 	window.clear(sf::Color::Black);
 
@@ -192,8 +188,6 @@ void initializeSetup(){
 }
 
 int main(){
-
-	int ite = 0;
 
 	UI.libSetup();
 

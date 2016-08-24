@@ -7,8 +7,12 @@
 #include <stdlib.h>     
 #include <time.h>
 #include "enumser.h"
+#include "shaders.h"
 
 using namespace std;
+
+sf::Shader glowShader;
+sf::RenderTexture glowwy;
 
 bool updateSetup();
 bool updateFade(int ID);
@@ -106,6 +110,15 @@ int lastColor = -1;
 
 bool IL::libSetup(string path){
 
+	if (!sf::Shader::isAvailable())
+		cout << "Shaders not available on your graphics card" << endl;
+
+	glowwy.create(360, 360);
+
+	if (!glowShader.loadFromMemory(blurFragShader, sf::Shader::Fragment))
+		cout << "failed to load blurFragShader" << endl;
+
+
 	if (path != "c") {
 		fontPath = path;
 		cout << "Path to font files defined as " + fontPath << endl;
@@ -128,6 +141,18 @@ bool IL::render(sf::RenderWindow& window, sf::Vector2i mousePos) {
 
 	if (setupProgress == 1 || setupProgress == 2)
 		highlightRoundbox(mousePos);
+	
+	//Shaders
+	glowwy.clear();
+	glowwy.draw(loadedSprites[0]);
+	glowwy.display();
+
+	sf::Sprite glow(glowwy.getTexture());
+	glow.setPosition(sf::Vector2f(332, 100));
+	glowShader.setUniform("texture", sf::Shader::CurrentTexture);
+	glowShader.setUniform("radius", 60);
+	glowShader.setUniform("dimensions", sf::Vector2f(glowwy.getSize()));
+	window.draw(glow, &glowShader);
 
 	for (int i = 2; i < amountSprite; i++) {
 		window.draw(loadedSprites[i]);
@@ -160,7 +185,7 @@ bool IL::render(sf::RenderWindow& window, sf::Vector2i mousePos) {
 			window.draw(*roundedRectangleDrawable[i]);
 	}
 	if (setupProgress == 0) {
-		window.draw(loadedSprites[0]);
+		//window.draw(loadedSprites[0]);
 	} else if (setupProgress == 1) {
 		for (int i = 0; i < amountSupportedStrip; i++) {
 			window.draw(supportedStrips[i].roundRect);
