@@ -3,7 +3,7 @@
 #include <SFML/Graphics.hpp>
 #include <string>
 #include <iostream>
-#include "RoundedRectangleShape.hpp"
+#include "RoundedRectangleShape.hpp" 
 #include <stdlib.h>     
 #include <time.h>
 #include "enumser.h"
@@ -25,8 +25,30 @@ struct clickableRoundButton{
 	int x1, y1, x2, y2;
 };
 
+struct ledStrip {
+	sf::RoundedRectangleShape roundRect;
+	sf::Text voltageText, pinsText, addressableText;
+	sf::Sprite image; 
+};
+struct comButton {
+	sf::RoundedRectangleShape roundRect;
+	string namesCOM, portsCOM;
+	sf::Text namesCOMText, portsCOMText;
+	bool isArduino;
+};
+
+vector<ledStrip> supportedStrips;
+vector<clickableRoundButton> supportedStripsArea;
+int amountSupportedStrip;
+int selectedModel = -1;
+
+vector<comButton> activeCOMPorts;
+vector<clickableRoundButton> activeCOMPortsArea;
+int amountActiveCOM = 0;
+int selectedCOM = -1;
+
 vector<sf::Sprite> loadedSprites;
-int amountSprites = 0;
+int amountSprite = 0;
 
 vector<sf::Font> textFont;
 vector<string> fontLabel;
@@ -35,7 +57,7 @@ int amountTextFont = 0;
 vector<sf::Texture> loadedTextures;
 vector<string> textureLabel;
 sf::Texture t;
-int amountTextures;
+int amountTexture;
 
 sf::Clock fadeClock;
 vector<sf::RectangleShape> fadeRectangle;
@@ -81,19 +103,8 @@ vector<sf::Color> goodColors;
 vector<sf::Color> evilColors;
 int lastColor = -1;
 
-int amountSupportedStrips;
-int selectedModel;
 
-vector<string> namesCOM;
-vector<string> portsCOM;
-vector<sf::Text> namesCOMText;
-vector<sf::Text> portsCOMText;
-vector<bool> isArduino;
-int amountActiveCOMs = 0;
-int selectedCOM = -1;
-
-bool IL::libSetup(int amountStrips, string path){
-	amountSupportedStrips = amountStrips;
+bool IL::libSetup(string path){
 
 	if (path != "c") {
 		fontPath = path;
@@ -114,28 +125,12 @@ bool IL::libSetup(int amountStrips, string path){
 }
 bool IL::render(sf::RenderWindow& window, sf::Vector2i mousePos) {
 	amountCheckboxText = 0;
-	loadedSprites[1].setPosition(sf::Vector2f(-300, -300));
 
 	if (setupProgress == 1 || setupProgress == 2)
 		highlightRoundbox(mousePos);
 
-	for (int i = 0; i < amountSprites; i++) {
-		if (i == 0) {
-			if (setupProgress == 0)
-				window.draw(loadedSprites[i]);
-		} else if (i == 1) {
-			if (setupProgress == 2) {
-				for (int c = 0; c < isArduino.size(); c++) {
-					if (isArduino[c]) {
-						loadedSprites[c].setPosition(sf::Vector2f(105 + 199 * c, 200));
-						window.draw(loadedSprites[c]);
-					}
-				}
-			}
-		}
-		else {
-			window.draw(loadedSprites[i]);
-		}
+	for (int i = 2; i < amountSprite; i++) {
+		window.draw(loadedSprites[i]);
 	}
 	for (int i = 0; i < amountTextLabel; i++){
 		window.draw(textLabel[i]);
@@ -160,34 +155,41 @@ bool IL::render(sf::RenderWindow& window, sf::Vector2i mousePos) {
 		}
 	}
 	for (int i = 0; i < amountRoundedRectangle; i++){
-		if (i >= 0 && i < (amountRoundedRectangle - amountSupportedStrips - amountActiveCOMs)) {
-			window.draw(roundedRectangle[i]);
-			if (roundedRectangleDrawable[i] != NULL)
-				window.draw(*roundedRectangleDrawable[i]);
-		} else if (i > (amountRoundedRectangle - amountSupportedStrips - amountActiveCOMs - 1) && i < (amountRoundedRectangle - amountActiveCOMs)) {
-			if (setupProgress == 1)
-				window.draw(roundedRectangle[i]);
-		} else if (i > (amountRoundedRectangle - amountActiveCOMs - 1) && i < amountRoundedRectangle) {
-			if (setupProgress == 2 && amountActiveCOMs != 0) {
-				window.draw(roundedRectangle[i]);
-				window.draw(namesCOMText[i - amountActiveCOMs - amountSupportedStrips]);
-				window.draw(portsCOMText[i - amountActiveCOMs - amountSupportedStrips]);
+		window.draw(roundedRectangle[i]);
+		if (roundedRectangleDrawable[i] != NULL)
+			window.draw(*roundedRectangleDrawable[i]);
+	}
+	if (setupProgress == 0) {
+		window.draw(loadedSprites[0]);
+	} else if (setupProgress == 1) {
+		for (int i = 0; i < amountSupportedStrip; i++) {
+			window.draw(supportedStrips[i].roundRect);
+			window.draw(supportedStrips[i].voltageText);
+			window.draw(supportedStrips[i].pinsText);
+			window.draw(supportedStrips[i].addressableText);
+			window.draw(supportedStrips[i].image);
+		}
+	} else if (setupProgress == 2) {
+		for (int i = 0; i < amountActiveCOM; i++) {
+			if (activeCOMPorts[i].isArduino) {
+				loadedSprites[1].setPosition(sf::Vector2f(105 + 199 * i, 200));
+				window.draw(loadedSprites[1]);
 			}
+			window.draw(activeCOMPorts[i].roundRect);
+			window.draw(activeCOMPorts[i].namesCOMText);
+			window.draw(activeCOMPorts[i].portsCOMText);
+			window.draw(activeCOMPorts[i].roundRect);
+			window.draw(activeCOMPorts[i].roundRect);
 		}
 	}
-
-
-
-
+	
 	for (int i = 0; i < amountFade; i++){
 		if (doFade[i])
 			updateFade(i);
-		
 		if (fade[i] != 0){
 			window.draw(fadeRectangle[i]);
 		}
 	}
-	
 	return true;
 }
 bool IL::mouseClicked(sf::Vector2i mousePos, int buttonClicked){
@@ -254,14 +256,23 @@ bool IL::mouseClicked(sf::Vector2i mousePos, int buttonClicked){
 					}
 					return true;
 				}
-				else if (i > (amountRoundedRectangle - amountSupportedStrips - amountActiveCOMs - 1) && i < (amountRoundedRectangle - amountActiveCOMs) && setupProgress == 1) {
+			}
+		}
+		if (setupProgress == 1) {
+			for (int i = 0; i < amountSupportedStrip; i++) {
+				if (mousePos.x >= supportedStripsArea[i].x1 && mousePos.x <= supportedStripsArea[i].x2 && mousePos.y >= supportedStripsArea[i].y1 && mousePos.y <= supportedStripsArea[i].y2) {
 					selectedModel = i;
-					roundedRectangle[i].setOutlineColor(sf::Color(19, 161, 237, 220));
+					supportedStrips[i].roundRect.setOutlineColor(sf::Color(19, 161, 237, 220));
 					return true;
 				}
-				else if (i > (amountRoundedRectangle - amountActiveCOMs - 1) && i < amountRoundedRectangle && setupProgress == 2) {
+			}
+		}
+		if (setupProgress == 2) {
+			for (int i = 0; i < amountActiveCOM; i++) {
+				if (mousePos.x >= activeCOMPortsArea[i].x1 && mousePos.x <= activeCOMPortsArea[i].x2 && mousePos.y >= activeCOMPortsArea[i].y1 && mousePos.y <= activeCOMPortsArea[i].y2) {
+					cout << "putting selected com port to " << i << endl;
 					selectedCOM = i;
-					roundedRectangle[i].setOutlineColor(sf::Color(19, 161, 237, 220));
+					activeCOMPorts[i].roundRect.setOutlineColor(sf::Color(19, 161, 237, 220));
 					return true;
 				}
 			}
@@ -308,7 +319,7 @@ bool IL::loadTextureFromMemory(const void* data, int sizeInBytes, string label){
 	texture.setSmooth(true);
 	loadedTextures.push_back(texture);
 	textureLabel.push_back(label);
-	amountTextures++;
+	amountTexture++;
 	return true;
 }
 bool setFont(sf::Text& text, string font){
@@ -395,7 +406,61 @@ bool IL::newSprite(sf::Vector2f position, string textureLabel, sf::Vector2f scal
 	sprite.setPosition(position);
 
 	loadedSprites.push_back(sprite);
-	amountSprites++;
+	amountSprite++;
+	return true;
+}
+bool IL::addStrip(int voltage, string pins, string textureLabel, bool addressable) {
+	
+	ledStrip s;
+
+	s.roundRect = sf::RoundedRectangleShape(sf::Vector2f(140, 196), 10, 10);
+	s.roundRect.setOutlineThickness(-3);
+	s.roundRect.setPosition(sf::Vector2f(10 + 149 * amountSupportedStrip, 135));
+	s.roundRect.setFillColor(sf::Color::Transparent);
+	s.roundRect.setOutlineColor(sf::Color(120, 120, 120, 180));
+
+	s.voltageText.setString("Voltage: +" + to_string(voltage) + "V");
+	s.voltageText.setCharacterSize(16);
+	setFont(s.voltageText, "comfortaa");
+	s.voltageText.setOrigin(s.voltageText.getGlobalBounds().width / 2, 0);
+	s.voltageText.setPosition(sf::Vector2f(80 + 149 * amountSupportedStrip, 254));
+
+	s.pinsText.setString("Pins: " + pins);
+	s.pinsText.setCharacterSize(15);
+	setFont(s.pinsText, "comfortaa");
+	int posOffSet = 0;
+	if (s.pinsText.getGlobalBounds().width > 125) {
+		do {
+			s.pinsText.setCharacterSize(s.pinsText.getCharacterSize() - 1);
+			posOffSet++;
+		} while (s.pinsText.getGlobalBounds().width > 125);
+	}
+	s.pinsText.setOrigin(s.pinsText.getGlobalBounds().width / 2, 0);
+	s.pinsText.setPosition(sf::Vector2f(80 + 149 * amountSupportedStrip, 279 + posOffSet));
+
+	s.addressableText.setCharacterSize(16);
+	setFont(s.addressableText, "comfortaa");
+	if (addressable)
+		s.addressableText.setString("Addressable");	
+	else {
+		s.addressableText.setString("Non-addressable");
+		s.addressableText.setCharacterSize(15);
+	}
+	s.addressableText.setOrigin(s.addressableText.getGlobalBounds().width / 2, 0);
+	s.addressableText.setPosition(sf::Vector2f(80 + 149 * amountSupportedStrip - 1, 305 + !addressable));
+
+	s.image.setTexture(loadedTextures[getTexture(textureLabel)]);
+	s.image.setOrigin(sf::Vector2f(s.image.getGlobalBounds().width / 2, s.image.getGlobalBounds().height / 2));
+	s.image.setPosition(sf::Vector2f(80 + 149 * amountSupportedStrip, 200));
+
+	clickableRoundButton d = {
+		(10 + 149 * amountSupportedStrip), 135, 140 + (10 + 149 * amountSupportedStrip), 331
+	};
+
+	supportedStripsArea.push_back(d);
+	supportedStrips.push_back(s);
+	amountSupportedStrip++;
+
 	return true;
 }
 bool IL::newTextLabel(int x, int y, string text, string font, int size, sf::Color color){
@@ -535,7 +600,7 @@ bool IL::newDropDown(int x, int y, string defaultText, vector<string> elements, 
 	amountDropDown++;
 	return true;
 }
-bool newRB(sf::Vector2f position, sf::Vector2f size, int radius, sf::Color color, sf::Drawable* d = NULL) {
+bool IL::newRoundButton(sf::Vector2f position, sf::Vector2f size, int radius, sf::Color color, sf::Drawable* d){
 	sf::RoundedRectangleShape roundRect;
 
 	roundRect = sf::RoundedRectangleShape(size, radius, 10);
@@ -551,13 +616,7 @@ bool newRB(sf::Vector2f position, sf::Vector2f size, int radius, sf::Color color
 	roundedRectangleDrawable.push_back(d);
 	roundButtonArea.push_back(clickArea);
 	amountRoundedRectangle++;
-	return true;
-}
-bool IL::newRoundButton(sf::Vector2f position, sf::Vector2f size, int radius, sf::Color color, sf::Drawable* d){
-	if (d == NULL)
-		newRB(position, size, radius, color);
-	else
-		newRB(position, size, radius, color, d);
+
 	return true;
 }
 bool IL::updateSetup() {
@@ -627,35 +686,29 @@ bool IL::updateSetup() {
 
 	return true;
 }
-bool highlightRoundbox(sf::Vector2i mousePos) {
+bool IL::highlightRoundbox(sf::Vector2i mousePos) {
 	if (setupProgress == 1) {
-		for (int r = (amountRoundedRectangle - amountSupportedStrips - amountActiveCOMs); r < (amountRoundedRectangle - amountActiveCOMs); r++) {
-			if (r != selectedModel) 
-				roundedRectangle[r].setOutlineColor(sf::Color(120, 120, 120, 180));
+		for (int i = 0; i < amountSupportedStrip; i++) {
+			if (i != selectedModel)
+				supportedStrips[i].roundRect.setOutlineColor(sf::Color(120, 120, 120, 180));
+				if (mousePos.x >= supportedStripsArea[i].x1 && mousePos.x <= supportedStripsArea[i].x2 && mousePos.y >= supportedStripsArea[i].y1 && mousePos.y <= supportedStripsArea[i].y2)
+					supportedStrips[i].roundRect.setOutlineColor(sf::Color(242, 242, 242, 210));
 		}
-		for (int i = (amountRoundedRectangle - amountSupportedStrips - amountActiveCOMs); i < (amountRoundedRectangle - amountActiveCOMs); i++) {
-			if (mousePos.x >= roundButtonArea[i].x1 && mousePos.x <= roundButtonArea[i].x2 && mousePos.y >= roundButtonArea[i].y1 && mousePos.y <= roundButtonArea[i].y2) {		
-				if (i != selectedModel)
-					roundedRectangle[i].setOutlineColor(sf::Color(242, 242, 242, 210));
-			}
-		}
+		if (selectedModel >= 0)
+			supportedStrips[selectedModel].roundRect.setOutlineColor(sf::Color(19, 161, 237, 220));
 	} else if (setupProgress == 2) {
-		for (int r = (amountRoundedRectangle - amountActiveCOMs); r < amountRoundedRectangle; r++) {
-			if (r != selectedCOM)
-				roundedRectangle[r].setOutlineColor(sf::Color(120, 120, 120, 180));
-		}
-		for (int i = (amountRoundedRectangle - amountActiveCOMs); i < amountRoundedRectangle; i++) {
-			if (isArduino[i - (amountRoundedRectangle - amountActiveCOMs)])
-				roundedRectangle[i].setOutlineColor(sf::Color(25, 151, 156, 220));
-			if (mousePos.x >= roundButtonArea[i].x1 && mousePos.x <= roundButtonArea[i].x2 && mousePos.y >= roundButtonArea[i].y1 && mousePos.y <= roundButtonArea[i].y2) {
-				if (i != selectedCOM)
-					roundedRectangle[i].setOutlineColor(sf::Color(242, 242, 242, 210));
+		for (int i = 0; i < amountActiveCOM; i++) {
+			if (i != selectedCOM) {
+				activeCOMPorts[i].roundRect.setOutlineColor(sf::Color(120, 120, 120, 180));
+				if (activeCOMPorts[i].isArduino)
+					activeCOMPorts[i].roundRect.setOutlineColor(sf::Color(25, 151, 156, 220));
+				if (mousePos.x >= activeCOMPortsArea[i].x1 && mousePos.x <= activeCOMPortsArea[i].x2 && mousePos.y >= activeCOMPortsArea[i].y1 && mousePos.y <= activeCOMPortsArea[i].y2)
+					activeCOMPorts[i].roundRect.setOutlineColor(sf::Color(242, 242, 242, 210));
 			}
 		}
 		if (selectedCOM >= 0)
-			roundedRectangle[selectedCOM].setOutlineColor(sf::Color(19, 161, 237, 220));
+			activeCOMPorts[selectedCOM].roundRect.setOutlineColor(sf::Color(19, 161, 237, 220));
 	}
-	
 	return true;
 }
 void getActiveCOM() {
@@ -672,63 +725,68 @@ void getActiveCOM() {
 
 #ifndef NO_CENUMERATESERIAL_USING_SETUPAPI2
 	if (CEnumerateSerial::UsingSetupAPI2(ports, names)){
-		roundedRectangle._Pop_back_n(amountActiveCOMs);
-		roundedRectangleDrawable._Pop_back_n(amountActiveCOMs);
-		roundButtonArea._Pop_back_n(amountActiveCOMs);
-		amountRoundedRectangle -= amountActiveCOMs;
-		namesCOM.clear();
-		isArduino.clear();
-		amountActiveCOMs = 0;
+		activeCOMPortsArea.clear();
+		activeCOMPorts.clear();
+		amountActiveCOM = 0;
 
 #ifdef CENUMERATESERIAL_USE_STL
 		for (i = 0; i < ports.size(); i++) {
+
+			comButton b;
+
+			b.roundRect = sf::RoundedRectangleShape(sf::Vector2f(190, 196), 10, 10);
+			b.roundRect.setOutlineThickness(-3);
+			b.roundRect.setPosition(sf::Vector2f(10 + 199 * amountActiveCOM, 135));
+			b.roundRect.setFillColor(sf::Color::Transparent);
+			b.roundRect.setOutlineColor(sf::Color(120, 120, 120, 180));
+
 			string q("COM" + to_string(ports[i]));
 			CString cs(names[i].c_str());
 			CT2CA pszConvertedAnsiString(cs);
 			string s(pszConvertedAnsiString);
-			cout << q << " " << s << endl;
-			newRB(sf::Vector2f(10 + 199 * amountActiveCOMs, 135), sf::Vector2f(190, 196), 10, sf::Color(120, 120, 120, 180));
-			namesCOM.push_back(q);
-			portsCOM.push_back(s);
+			b.namesCOM = q;
+			b.portsCOM = s;
 			
-			sf::Text labelName;
-			labelName.setString(s);
-			labelName.setCharacterSize(18);
-			setFont(labelName, "comfortaa");
-			if (labelName.getGlobalBounds().width > 170) {
+			b.namesCOMText.setString(s);
+			b.namesCOMText.setCharacterSize(18);
+			setFont(b.namesCOMText, "comfortaa");
+			if (b.namesCOMText.getGlobalBounds().width > 170) {
 				do {
-					labelName.setCharacterSize(labelName.getCharacterSize() - 1);
-				} while (labelName.getGlobalBounds().width > 170);
+					b.namesCOMText.setCharacterSize(b.namesCOMText.getCharacterSize() - 1);
+				} while (b.namesCOMText.getGlobalBounds().width > 170);
 			}
-			labelName.setOrigin(labelName.getGlobalBounds().width / 2, 0);
-			labelName.setPosition(sf::Vector2f(105 + 199 * amountActiveCOMs, 279));
-			namesCOMText.push_back(labelName);
+			b.namesCOMText.setOrigin(b.namesCOMText.getGlobalBounds().width / 2, 0);
+			b.namesCOMText.setPosition(sf::Vector2f(105 + 199 * amountActiveCOM, 279));
 			
-			sf::Text labelPort;
-			labelPort.setString(q);
-			labelPort.setCharacterSize(19);
-			setFont(labelPort, "comfortaa");
-			labelPort.setOrigin(labelPort.getGlobalBounds().width / 2, 0);
-			labelPort.setPosition(sf::Vector2f(105 + 199 * amountActiveCOMs, 300));
-			portsCOMText.push_back(labelPort);
-
-			amountActiveCOMs++;
+			b.portsCOMText.setString(q);
+			b.portsCOMText.setCharacterSize(19);
+			setFont(b.portsCOMText, "comfortaa");
+			b.portsCOMText.setOrigin(b.portsCOMText.getGlobalBounds().width / 2, 0);
+			b.portsCOMText.setPosition(sf::Vector2f(105 + 199 * amountActiveCOM, 300));
 
 			size_t found = s.find("Arduino");
 			if (found != std::string::npos)
-				isArduino.push_back(true);
+				b.isArduino = true;
 			else
-				isArduino.push_back(false);
+				b.isArduino = false;
+
+			clickableRoundButton d = {
+				(10 + 199 * amountActiveCOM), 135, (200 + 199 * amountActiveCOM), 331
+			};
+
+			activeCOMPortsArea.push_back(d);
+			activeCOMPorts.push_back(b);
+			amountActiveCOM++;
 		}
-#else
+/*#else
 		for (i = 0; i < ports.GetSize(); i++) {
 			string q("COM" + to_string(ports[i]) + " " + names[i].operator LPCTSTR());
 			cout << q << endl;
 			newRB(sf::Vector2f(10 + 149 * amountActiveCOMs, 135), sf::Vector2f(140, 196), 10, sf::Color(120, 120, 120, 180));
 			namesCOM.push_back(q);
 			amountActiveCOMs++;
-		}
-#endif
+		}*/
+#endif //#ifdef CENUMERATESERIAL_USE_STL
 	}
 	else
 		_tprintf(_T("Checking for active COM-ports failed, Error:%u\n"), GetLastError());

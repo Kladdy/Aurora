@@ -28,8 +28,6 @@ const int MAINWINDOW_HEIGHT = 576;
 const int SETUPWINDOW_WIDTH = 1024;
 const int SETUPWINDOW_HEIGHT = 400;
 
-const int AMOUNT_SUPPORTEDSTRIPS = 4;
-
 CTrayIcon trayIcon("Aurora", true, LoadIcon((HINSTANCE)GetModuleHandle(NULL), MAKEINTRESOURCE(IDI_ICON1)));
 sf::Vector2i getTaskbarPos();
 sf::Vector2i mousePos;
@@ -163,11 +161,17 @@ void initializeSetup(){
 		"You can re-run the setup-process by *insert feature \nto repeat setup here*. Use the arrows below in order to maneuver your way through the different options."\
 		"\n\nIf you are unsure about which settings to opt for, or you believe that something is missing or not working as \nintended, don't hesitate to contact me. *Insert methods of contacting me here*", "comfortaa", 18);
 
-	UI.loadTextureFromMemory((void*)AuroraLogo256, AuroraLogo256_Size, "auroralogo256");
-	UI.loadTextureFromMemory((void*)ArduinoLogo, ArduinoLogo_Size, "arduinologo256");
+	UI.loadTextureFromMemory((void*)AuroraLogo, AuroraLogo_Size, "auroralogo");
+	UI.loadTextureFromMemory((void*)ArduinoLogo, ArduinoLogo_Size, "arduinologo");
+	UI.loadTextureFromMemory((void*)StripDIN5V, StripDIN5V_Size, "stripdin5v");
+	UI.loadTextureFromMemory((void*)StripRGB12V, StripRGB12V_Size, "striprgb12v");
 
-	UI.newSprite(sf::Vector2f(512, 280), "auroralogo256", sf::Vector2f(0.7f, 0.7f));
-	UI.newSprite(sf::Vector2f(-300, -300), "arduinologo256", sf::Vector2f(1.0f, 1.0f));
+
+	UI.addStrip(5, "DIN, +5V & GND", "stripdin5v", true);
+	UI.addStrip(12, "R, G, B & +12V", "striprgb12v", false);
+
+	UI.newSprite(sf::Vector2f(512, 280), "auroralogo");
+	UI.newSprite(sf::Vector2f(-300, -300), "arduinologo");
 
 	backTriangle.setFillColor(sf::Color(255, 191, 54, 200));
 	backTriangle.setOrigin(backTriangle.getGlobalBounds().width / 2, backTriangle.getGlobalBounds().height / 2);
@@ -181,10 +185,6 @@ void initializeSetup(){
 	forwardTriangle.setPosition(sf::Vector2f(990, 362));
 	UI.newRoundButton(sf::Vector2f(964, 340), sf::Vector2f(50, 50), 10, sf::Color(0, 219, 58, 200), &forwardTriangle);
 
-	for (int i = 0; i < AMOUNT_SUPPORTEDSTRIPS; i++) {
-		UI.newRoundButton(sf::Vector2f(10 + 149 * i, 135), sf::Vector2f(140, 196), 10, sf::Color(120, 120, 120, 180));
-	}
-
 	UI.newFade(sf::Vector2f(SETUPWINDOW_WIDTH, SETUPWINDOW_HEIGHT), 600);
 	UI.updateSetup();
 
@@ -195,7 +195,7 @@ int main(){
 
 	int ite = 0;
 
-	UI.libSetup(AMOUNT_SUPPORTEDSTRIPS);
+	UI.libSetup();
 
 	//Initialize the main window
 	sf::ContextSettings settings;
