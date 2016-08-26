@@ -152,34 +152,38 @@ void initializeSetup(){
 
 	UI.loadFontFromMemory((void*)ComfortaaLight, ComfortaaLight_Size, "comfortaa");
 
-	UI.newTextLabel(10, 7, "Aurora - Setup: Introduction", "comfortaa", 30, sf::Color::White);
+	UI.newTextLabel(10, 7, "Aurora - Setup: Introduction", "comfortaa", 30);
 	UI.newTextLabel(10, 45, "Greetings! I will guide you through how to properly set up Aurora. If this is your first time using the program, \nplease read the contents of this walkthrough carefully."\
 		"You can re-run the setup-process by *insert feature \nto repeat setup here*. Use the arrows below in order to maneuver your way through the different options."\
 		"\n\nIf you are unsure about which settings to opt for, or you believe that something is missing or not working as \nintended, don't hesitate to contact me. *Insert methods of contacting me here*", "comfortaa", 18);
+	UI.newTextLabel(463, 349, "Refresh", "comfortaa", 26);
 
 	UI.loadTextureFromMemory((void*)AuroraLogo, AuroraLogo_Size, "auroralogo");
+	UI.loadTextureFromMemory((void*)AuroraLogoGlow, AuroraLogoGlow_Size, "auroralogoglow");
 	UI.loadTextureFromMemory((void*)ArduinoLogo, ArduinoLogo_Size, "arduinologo");
 	UI.loadTextureFromMemory((void*)StripDIN5V, StripDIN5V_Size, "stripdin5v");
 	UI.loadTextureFromMemory((void*)StripRGB12V, StripRGB12V_Size, "striprgb12v");
-
 
 	UI.addStrip(5, "DIN, +5V & GND", "stripdin5v", true);
 	UI.addStrip(12, "R, G, B & +12V", "striprgb12v", false);
 
 	UI.newSprite(sf::Vector2f(512, 280), "auroralogo");
+	UI.newSprite(sf::Vector2f(512, 280), "auroralogoglow");
 	UI.newSprite(sf::Vector2f(-300, -300), "arduinologo");
 
 	backTriangle.setFillColor(sf::Color(255, 191, 54, 200));
 	backTriangle.setOrigin(backTriangle.getGlobalBounds().width / 2, backTriangle.getGlobalBounds().height / 2);
 	backTriangle.rotate(-90);
 	backTriangle.setPosition(sf::Vector2f(34, 367));
-	UI.newRoundButton(sf::Vector2f(10, 340), sf::Vector2f(50, 50), 10, sf::Color(255, 191, 54, 200), &backTriangle);
+	UI.newRoundButton(sf::Vector2f(35, 365), sf::Vector2f(50, 50), 10, sf::Color(0, 0, 0, 0), &backTriangle);
 	
 	forwardTriangle.setFillColor(sf::Color(0, 219, 58, 200));
 	forwardTriangle.setOrigin(forwardTriangle.getGlobalBounds().width / 2, forwardTriangle.getGlobalBounds().height / 2);
 	forwardTriangle.rotate(90);
 	forwardTriangle.setPosition(sf::Vector2f(990, 362));
-	UI.newRoundButton(sf::Vector2f(964, 340), sf::Vector2f(50, 50), 10, sf::Color(0, 219, 58, 200), &forwardTriangle);
+	UI.newRoundButton(sf::Vector2f(989, 365), sf::Vector2f(50, 50), 10, sf::Color(0, 0, 0, 0), &forwardTriangle);
+
+	UI.newRoundButton(sf::Vector2f(512, 365), sf::Vector2f(120, 50), 10, sf::Color(255, 191, 54, 200));
 
 	UI.newFade(sf::Vector2f(SETUPWINDOW_WIDTH, SETUPWINDOW_HEIGHT), 600);
 	UI.updateSetup();

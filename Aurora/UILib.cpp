@@ -7,12 +7,9 @@
 #include <stdlib.h>     
 #include <time.h>
 #include "enumser.h"
-#include "shaders.h"
+#include <math.h> 
 
 using namespace std;
-
-sf::Shader glowShader;
-sf::RenderTexture glowwy;
 
 bool updateSetup();
 bool updateFade(int ID);
@@ -50,6 +47,16 @@ vector<comButton> activeCOMPorts;
 vector<clickableRoundButton> activeCOMPortsArea;
 int amountActiveCOM = 0;
 int selectedCOM = -1;
+
+sf::Clock logoFadeClock;
+int logoFade = 0;
+
+sf::Clock rotateClock;
+bool doRotate = false;
+bool rotateDir = false;
+bool rotateChangeDir = false;
+int changedDirRotation;
+int rotation;
 
 vector<sf::Sprite> loadedSprites;
 int amountSprite = 0;
@@ -110,15 +117,6 @@ int lastColor = -1;
 
 bool IL::libSetup(string path){
 
-	if (!sf::Shader::isAvailable())
-		cout << "Shaders not available on your graphics card" << endl;
-
-	glowwy.create(360, 360);
-
-	if (!glowShader.loadFromMemory(blurFragShader, sf::Shader::Fragment))
-		cout << "failed to load blurFragShader" << endl;
-
-
 	if (path != "c") {
 		fontPath = path;
 		cout << "Path to font files defined as " + fontPath << endl;
@@ -141,24 +139,15 @@ bool IL::render(sf::RenderWindow& window, sf::Vector2i mousePos) {
 
 	if (setupProgress == 1 || setupProgress == 2)
 		highlightRoundbox(mousePos);
+
 	
-	//Shaders
-	glowwy.clear();
-	glowwy.draw(loadedSprites[0]);
-	glowwy.display();
 
-	sf::Sprite glow(glowwy.getTexture());
-	glow.setPosition(sf::Vector2f(332, 100));
-	glowShader.setUniform("texture", sf::Shader::CurrentTexture);
-	glowShader.setUniform("radius", 60);
-	glowShader.setUniform("dimensions", sf::Vector2f(glowwy.getSize()));
-	window.draw(glow, &glowShader);
-
-	for (int i = 2; i < amountSprite; i++) {
+	for (int i = 3; i < amountSprite; i++) {
 		window.draw(loadedSprites[i]);
 	}
 	for (int i = 0; i < amountTextLabel; i++){
-		window.draw(textLabel[i]);
+		if (i != 2)
+			window.draw(textLabel[i]);
 	}
 	for (int i = 0; i < amountCheckbox; i++){
 		window.draw(checkboxFrame[i]);
@@ -180,12 +169,24 @@ bool IL::render(sf::RenderWindow& window, sf::Vector2i mousePos) {
 		}
 	}
 	for (int i = 0; i < amountRoundedRectangle; i++){
-		window.draw(roundedRectangle[i]);
-		if (roundedRectangleDrawable[i] != NULL)
-			window.draw(*roundedRectangleDrawable[i]);
+		if (i != 2) {
+			window.draw(roundedRectangle[i]);
+			if (roundedRectangleDrawable[i] != NULL)
+				window.draw(*roundedRectangleDrawable[i]);
+		}
 	}
 	if (setupProgress == 0) {
-		//window.draw(loadedSprites[0]);
+		if (logoFade < 255 && logoFadeClock.getElapsedTime().asMilliseconds() > 30) {
+			logoFadeClock.restart();
+			logoFade += 3;
+			if (logoFade >= 255)
+				logoFade = 255;
+			sf::Color c = loadedSprites[1].getColor();
+			c = sf::Color(c.r, c.g, c.g, logoFade);
+			loadedSprites[1].setColor(c);
+		}
+		window.draw(loadedSprites[0]);
+		window.draw(loadedSprites[1]);
 	} else if (setupProgress == 1) {
 		for (int i = 0; i < amountSupportedStrip; i++) {
 			window.draw(supportedStrips[i].roundRect);
@@ -197,8 +198,8 @@ bool IL::render(sf::RenderWindow& window, sf::Vector2i mousePos) {
 	} else if (setupProgress == 2) {
 		for (int i = 0; i < amountActiveCOM; i++) {
 			if (activeCOMPorts[i].isArduino) {
-				loadedSprites[1].setPosition(sf::Vector2f(105 + 199 * i, 200));
-				window.draw(loadedSprites[1]);
+				loadedSprites[2].setPosition(sf::Vector2f(105 + 199 * i, 200)); 
+					window.draw(loadedSprites[2]);
 			}
 			window.draw(activeCOMPorts[i].roundRect);
 			window.draw(activeCOMPorts[i].namesCOMText);
@@ -206,6 +207,34 @@ bool IL::render(sf::RenderWindow& window, sf::Vector2i mousePos) {
 			window.draw(activeCOMPorts[i].roundRect);
 			window.draw(activeCOMPorts[i].roundRect);
 		}
+		if (doRotate) {
+			
+			
+			if (rotateChangeDir && ((changedDirRotation < 0 && rotation >= 0) || (changedDirRotation > 0 && rotation <= 0))) {
+					selectedCOM = -1;
+					getActiveCOM();
+					rotateDir = !rotateDir;
+					rotateClock.restart();
+					rotateChangeDir = false;
+			}
+
+			if (rotateClock.getElapsedTime().asMilliseconds() > 5027) {
+				rotation = 0;
+				doRotate = false;
+			} else {
+				float x = rotateClock.getElapsedTime().asMilliseconds() / 200.f;
+				if (rotateDir)
+					rotation = (-100 * sin(x)) / (x + 1);
+				else
+					rotation = (100 * sin(x)) / (x + 1);
+			}
+			
+
+			roundedRectangle[2].setRotation(rotation);
+			textLabel[2].setRotation(rotation);
+		}
+		window.draw(roundedRectangle[2]);
+		window.draw(textLabel[2]);
 	}
 	
 	for (int i = 0; i < amountFade; i++){
@@ -280,6 +309,19 @@ bool IL::mouseClicked(sf::Vector2i mousePos, int buttonClicked){
 						fadeClock.restart();
 					}
 					return true;
+				} else if (i == 2) {
+					if (doRotate) {
+						rotateChangeDir = true; 
+						changedDirRotation = rotation;
+					} else {
+						selectedCOM = -1;
+						getActiveCOM();
+						doRotate = true;
+						rotateDir = !rotateDir;
+						rotateClock.restart();
+					}
+					
+					return true;
 				}
 			}
 		}
@@ -295,7 +337,6 @@ bool IL::mouseClicked(sf::Vector2i mousePos, int buttonClicked){
 		if (setupProgress == 2) {
 			for (int i = 0; i < amountActiveCOM; i++) {
 				if (mousePos.x >= activeCOMPortsArea[i].x1 && mousePos.x <= activeCOMPortsArea[i].x2 && mousePos.y >= activeCOMPortsArea[i].y1 && mousePos.y <= activeCOMPortsArea[i].y2) {
-					cout << "putting selected com port to " << i << endl;
 					selectedCOM = i;
 					activeCOMPorts[i].roundRect.setOutlineColor(sf::Color(19, 161, 237, 220));
 					return true;
@@ -497,6 +538,10 @@ bool IL::newTextLabel(int x, int y, string text, string font, int size, sf::Colo
 
 	setFont(label, font);
 
+	if (amountTextLabel == 2){
+		label.setOrigin(label.getGlobalBounds().width / 2, label.getGlobalBounds().height / 2);
+		label.move(label.getGlobalBounds().width / 2, label.getGlobalBounds().height / 2);
+	}
 	textLabel.push_back(label);
 	amountTextLabel++;
 	return true;
@@ -634,9 +679,14 @@ bool IL::newRoundButton(sf::Vector2f position, sf::Vector2f size, int radius, sf
 	roundRect.setFillColor(sf::Color::Transparent);
 	roundRect.setOutlineColor(color);
 
+	int w = roundRect.getGlobalBounds().width / 2;
+	int h = roundRect.getGlobalBounds().height / 2;
+
 	clickableRoundButton clickArea = {
-		position.x, position.y, position.x + size.x, position.y + size.y
+		position.x - w, position.y - h, position.x - w + size.x, position.y - h + size.y
 	};
+
+	roundRect.setOrigin(w, h);
 	roundedRectangle.push_back(roundRect);
 	roundedRectangleDrawable.push_back(d);
 	roundButtonArea.push_back(clickArea);
@@ -671,6 +721,7 @@ bool IL::updateSetup() {
 		textLabel[1].setString("Greetings! I will guide you through how to properly set up Aurora. If this is your first time using the program, \nplease read the contents of this walkthrough carefully."\
 			" You can re-run the setup-process by *insert feature \nto repeat setup here*. Use the arrows below in order to maneuver your way through the different options."\
 			"\n\nIf you are unsure about which settings to opt for, or you believe that something is missing or not working as \nintended, don't hesitate to contact me. *Insert methods of contacting me here*");
+		logoFade = 0;
 		break;
 
 	case 1:
