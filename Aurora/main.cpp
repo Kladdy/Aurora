@@ -157,19 +157,25 @@ void initializeSetup(){
 		"You can re-run the setup-process by *insert feature \nto repeat setup here*. Use the arrows below in order to maneuver your way through the different options."\
 		"\n\nIf you are unsure about which settings to opt for, or you believe that something is missing or not working as \nintended, don't hesitate to contact me. *Insert methods of contacting me here*", "comfortaa", 18);
 	UI.newTextLabel(463, 349, "Refresh", "comfortaa", 26);
+	UI.newTextLabel(10, 195, "Baud-rate:     9600", "comfortaa", 18);
+	UI.newTextLabel(10, 265, "LED amount:          1", "comfortaa", 18);
 
 	UI.loadTextureFromMemory((void*)AuroraLogo, AuroraLogo_Size, "auroralogo");
 	UI.loadTextureFromMemory((void*)AuroraLogoGlow, AuroraLogoGlow_Size, "auroralogoglow");
 	UI.loadTextureFromMemory((void*)ArduinoLogo, ArduinoLogo_Size, "arduinologo");
 	UI.loadTextureFromMemory((void*)StripDIN5V, StripDIN5V_Size, "stripdin5v");
 	UI.loadTextureFromMemory((void*)StripRGB12V, StripRGB12V_Size, "striprgb12v");
+	UI.loadTextureFromMemory((void*)StripIltrof, StripIltrof_Size, "stripiltrof");
+	UI.loadTextureFromMemory((void*)baudArrow, baudArrow_Size, "baudarrow");
 
 	UI.addStrip(5, "DIN, +5V & GND", "stripdin5v", true);
 	UI.addStrip(12, "R, G, B & +12V", "striprgb12v", false);
+	UI.addStrip(314, "5 fingers", "stripiltrof", true);
 
 	UI.newSprite(sf::Vector2f(512, 280), "auroralogo");
 	UI.newSprite(sf::Vector2f(512, 280), "auroralogoglow");
 	UI.newSprite(sf::Vector2f(-300, -300), "arduinologo");
+	UI.newSprite(sf::Vector2f(120, 206), "baudarrow");
 
 	backTriangle.setFillColor(sf::Color(255, 191, 54, 200));
 	backTriangle.setOrigin(backTriangle.getGlobalBounds().width / 2, backTriangle.getGlobalBounds().height / 2);
@@ -183,7 +189,7 @@ void initializeSetup(){
 	forwardTriangle.setPosition(sf::Vector2f(990, 362));
 	UI.newRoundButton(sf::Vector2f(989, 365), sf::Vector2f(50, 50), 10, sf::Color(0, 0, 0, 0), &forwardTriangle);
 
-	UI.newRoundButton(sf::Vector2f(512, 365), sf::Vector2f(120, 50), 10, sf::Color(255, 191, 54, 200));
+	UI.newRoundButton(sf::Vector2f(512, 365), sf::Vector2f(120, 50), 10, sf::Color(31, 109, 140, 200));
 
 	UI.newFade(sf::Vector2f(SETUPWINDOW_WIDTH, SETUPWINDOW_HEIGHT), 600);
 	UI.updateSetup();

@@ -53,10 +53,15 @@ int logoFade = 0;
 
 sf::Clock rotateClock;
 bool doRotate = false;
-bool rotateDir = false;
+bool rotateDir = true;
 bool rotateChangeDir = false;
 int changedDirRotation;
 int rotation;
+
+int baudRates[12] = { 300, 600, 1200, 2400, 4800, 9600, 14400, 19200, 28800, 38400, 57600, 115200 };
+int selectedRate = 5;
+
+int amountLEDs = 1;
 
 vector<sf::Sprite> loadedSprites;
 int amountSprite = 0;
@@ -140,13 +145,11 @@ bool IL::render(sf::RenderWindow& window, sf::Vector2i mousePos) {
 	if (setupProgress == 1 || setupProgress == 2)
 		highlightRoundbox(mousePos);
 
-	
-
-	for (int i = 3; i < amountSprite; i++) {
+	for (int i = 4; i < amountSprite; i++) {
 		window.draw(loadedSprites[i]);
 	}
 	for (int i = 0; i < amountTextLabel; i++){
-		if (i != 2)
+		if (i != 2 && i != 3 && i != 4)
 			window.draw(textLabel[i]);
 	}
 	for (int i = 0; i < amountCheckbox; i++){
@@ -208,16 +211,16 @@ bool IL::render(sf::RenderWindow& window, sf::Vector2i mousePos) {
 			window.draw(activeCOMPorts[i].roundRect);
 		}
 		if (doRotate) {
-			
-			
 			if (rotateChangeDir && ((changedDirRotation < 0 && rotation >= 0) || (changedDirRotation > 0 && rotation <= 0))) {
 					selectedCOM = -1;
 					getActiveCOM();
-					rotateDir = !rotateDir;
+					if (changedDirRotation >= 0)
+						rotateDir = true;
+					if (changedDirRotation <= 0)
+						rotateDir = false;
 					rotateClock.restart();
 					rotateChangeDir = false;
 			}
-
 			if (rotateClock.getElapsedTime().asMilliseconds() > 5027) {
 				rotation = 0;
 				doRotate = false;
@@ -235,6 +238,39 @@ bool IL::render(sf::RenderWindow& window, sf::Vector2i mousePos) {
 		}
 		window.draw(roundedRectangle[2]);
 		window.draw(textLabel[2]);
+	} else if (setupProgress == 3) {
+		textLabel[4].setFillColor(sf::Color(255, 255, 255, 255));
+		loadedSprites[3].setColor(sf::Color(255, 255, 255, 255));
+
+		window.draw(textLabel[3]);
+		loadedSprites[3].setRotation(0);
+		loadedSprites[3].setPosition(120, 206);
+		window.draw(loadedSprites[3]);
+		loadedSprites[3].setRotation(180);
+		loadedSprites[3].setPosition(193, 206);
+		window.draw(loadedSprites[3]);
+
+		if (selectedModel == -1 || supportedStrips[selectedModel].addressableText.getString() != "Addressable") {
+			textLabel[4].setFillColor(sf::Color(120, 120, 120, 180));
+			loadedSprites[3].setColor(sf::Color(120, 120, 120, 180));
+		}
+
+		window.draw(textLabel[4]);
+		loadedSprites[3].setRotation(0);
+		loadedSprites[3].setPosition(137, 276);
+		window.draw(loadedSprites[3]);
+		loadedSprites[3].setPosition(155, 276);
+		window.draw(loadedSprites[3]);
+		loadedSprites[3].setPosition(162, 276);
+		window.draw(loadedSprites[3]);
+
+		loadedSprites[3].setRotation(180);
+		loadedSprites[3].setPosition(205, 276);
+		window.draw(loadedSprites[3]);
+		loadedSprites[3].setPosition(212, 276);
+		window.draw(loadedSprites[3]);
+		loadedSprites[3].setPosition(230, 276);
+		window.draw(loadedSprites[3]);
 	}
 	
 	for (int i = 0; i < amountFade; i++){
@@ -317,7 +353,6 @@ bool IL::mouseClicked(sf::Vector2i mousePos, int buttonClicked){
 						selectedCOM = -1;
 						getActiveCOM();
 						doRotate = true;
-						rotateDir = !rotateDir;
 						rotateClock.restart();
 					}
 					
@@ -333,12 +368,55 @@ bool IL::mouseClicked(sf::Vector2i mousePos, int buttonClicked){
 					return true;
 				}
 			}
-		}
-		if (setupProgress == 2) {
+		} else if (setupProgress == 2) {
 			for (int i = 0; i < amountActiveCOM; i++) {
 				if (mousePos.x >= activeCOMPortsArea[i].x1 && mousePos.x <= activeCOMPortsArea[i].x2 && mousePos.y >= activeCOMPortsArea[i].y1 && mousePos.y <= activeCOMPortsArea[i].y2) {
 					selectedCOM = i;
 					activeCOMPorts[i].roundRect.setOutlineColor(sf::Color(19, 161, 237, 220));
+					return true;
+				}
+			}
+		} else if (setupProgress == 3) {
+			if (mousePos.x >= 116 && mousePos.x <= 126 && mousePos.y >= 196 && mousePos.y <= 215) {
+				selectedRate--;
+				if (selectedRate < 0)
+					selectedRate = 11;
+				textLabel[3].setString("Baud-rate:     " + to_string(baudRates[selectedRate]));
+				return true;
+			} else if (mousePos.x >= 189 && mousePos.x <= 199 && mousePos.y >= 196 && mousePos.y <= 215) {
+				selectedRate++;
+				if (selectedRate > 11)
+					selectedRate = 0;
+				textLabel[3].setString("Baud-rate:     " + to_string(baudRates[selectedRate]));
+				return true;
+			}
+			else if (selectedModel != -1 && supportedStrips[selectedModel].addressableText.getString() == "Addressable") {
+				if (mousePos.x >= 133 && mousePos.x <= 143 && mousePos.y >= 266 && mousePos.y <= 285) {
+					amountLEDs--;
+					if (amountLEDs <= 0)
+						amountLEDs = 1;
+					textLabel[4].setString("LED amount:          " + to_string(amountLEDs));
+					return true;
+				}
+				else if (mousePos.x >= 151 && mousePos.x <= 168 && mousePos.y >= 266 && mousePos.y <= 285) {
+					amountLEDs -= 5;
+					if (amountLEDs <= 0)
+						amountLEDs = 1;
+					textLabel[4].setString("LED amount:          " + to_string(amountLEDs));
+					return true;
+				}
+				else if (mousePos.x >= 201 && mousePos.x <= 218 && mousePos.y >= 266 && mousePos.y <= 285) {
+					amountLEDs += 5;
+					if (amountLEDs >= 100)
+						amountLEDs = 99;
+					textLabel[4].setString("LED amount:          " + to_string(amountLEDs));
+					return true;
+				}
+				else if (mousePos.x >= 226 && mousePos.x <= 236 && mousePos.y >= 266 && mousePos.y <= 285) {
+					amountLEDs++;
+					if (amountLEDs >= 100)
+						amountLEDs = 99;
+					textLabel[4].setString("LED amount:          " + to_string(amountLEDs));
 					return true;
 				}
 			}
@@ -539,8 +617,8 @@ bool IL::newTextLabel(int x, int y, string text, string font, int size, sf::Colo
 	setFont(label, font);
 
 	if (amountTextLabel == 2){
-		label.setOrigin(label.getGlobalBounds().width / 2, label.getGlobalBounds().height / 2);
-		label.move(label.getGlobalBounds().width / 2, label.getGlobalBounds().height / 2);
+		label.setOrigin(label.getGlobalBounds().width / 2, 16/* label.getGlobalBounds().height / 2*/);
+		label.move(label.getGlobalBounds().width / 2, 16/*label.getGlobalBounds().height / 2*/);
 	}
 	textLabel.push_back(label);
 	amountTextLabel++;
@@ -716,7 +794,7 @@ bool IL::updateSetup() {
 	
 	switch (setupProgress)
 	{
-	case 0: 
+	case 0:
 		textLabel[0].setString("Aurora - Setup: Introduction");
 		textLabel[1].setString("Greetings! I will guide you through how to properly set up Aurora. If this is your first time using the program, \nplease read the contents of this walkthrough carefully."\
 			" You can re-run the setup-process by *insert feature \nto repeat setup here*. Use the arrows below in order to maneuver your way through the different options."\
@@ -739,7 +817,15 @@ bool IL::updateSetup() {
 
 	case 3:
 		textLabel[0].setString("Aurora - Setup: Baud-rate & LED amount");
-		textLabel[1].setString("");
+		textLabel[1].setString("Changing the Baud-rate of Aurora should only be done if you know what you are doing and you have a good \nreason for it. Leaving it at the default value of 9600 is sufficient, and is the only rate"\
+			" that will work unless you \nmanually change the Arduino code. Setting the LED amount is only applicable to addressable strips and \nrequires you to have selected a compatible model in a previous settings page. Having a different"\
+			" amount of \nLEDs on your strip to the amount set in Aurora will not enable you to take full control over the entire strip.");
+		if (selectedModel == -1)
+			textLabel[4].setString("LED amount:          N/             You have not yet selected a strip model. This setting is located on the second page.");
+		else if (supportedStrips[selectedModel].addressableText.getString() != "Addressable")
+			textLabel[4].setString("LED amount:          N/                 Your currently selected strip model is not addressable; this setting is unavailable.");
+		else 
+			textLabel[4].setString("LED amount:          " + to_string(amountLEDs));
 		break;
 
 	case 4:
@@ -806,7 +892,10 @@ void getActiveCOM() {
 		amountActiveCOM = 0;
 
 #ifdef CENUMERATESERIAL_USE_STL
-		for (i = 0; i < ports.size(); i++) {
+		int p = 0;
+		if (selectedModel == 2)
+			p = 2;
+		for (i = 0; i < ports.size() + p; i++) {
 
 			comButton b;
 
@@ -815,11 +904,21 @@ void getActiveCOM() {
 			b.roundRect.setPosition(sf::Vector2f(10 + 199 * amountActiveCOM, 135));
 			b.roundRect.setFillColor(sf::Color::Transparent);
 			b.roundRect.setOutlineColor(sf::Color(120, 120, 120, 180));
-
-			string q("COM" + to_string(ports[i]));
-			CString cs(names[i].c_str());
-			CT2CA pszConvertedAnsiString(cs);
-			string s(pszConvertedAnsiString);
+			
+			string q;
+			string s;
+			if (i < ports.size()){
+				q = string("COM" + to_string(ports[i]));
+				CString cs(names[i].c_str());
+				CT2CA pszConvertedAnsiString(cs);
+				s = string(pszConvertedAnsiString);
+			} else {
+				q = "COM" + to_string(i * 2);
+				if (i - ports.size() == 0)
+					s = "Du bist nicht";
+				else
+					s = "Arduino Russki";
+			}
 			b.namesCOM = q;
 			b.portsCOM = s;
 			
