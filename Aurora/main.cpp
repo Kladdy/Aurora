@@ -159,6 +159,11 @@ void initializeSetup(){
 	UI.newTextLabel(463, 349, "Refresh", "comfortaa", 26);
 	UI.newTextLabel(10, 195, "Baud-rate:     9600", "comfortaa", 18);
 	UI.newTextLabel(10, 265, "LED amount:          1", "comfortaa", 18);
+	UI.newTextLabel(20, 126, "Wiring your RGB strip", "comfortaa", 26);
+	UI.newTextLabel(179, 281, "", "comfortaa", 16);
+	UI.newTextLabel(522, 349, "Push to Arduino", "comfortaa", 26);
+	UI.newTextLabel(750, 349, "Save as .ino file", "comfortaa", 26);
+	UI.newTextLabel(639, 245, "www.arduino.cc", "comfortaa", 18);
 
 	UI.loadTextureFromMemory((void*)AuroraLogo, AuroraLogo_Size, "auroralogo");
 	UI.loadTextureFromMemory((void*)AuroraLogoGlow, AuroraLogoGlow_Size, "auroralogoglow");
@@ -176,6 +181,7 @@ void initializeSetup(){
 	UI.newSprite(sf::Vector2f(512, 280), "auroralogoglow");
 	UI.newSprite(sf::Vector2f(-300, -300), "arduinologo");
 	UI.newSprite(sf::Vector2f(120, 206), "baudarrow");
+	UI.newSprite(sf::Vector2f(125, 333), "stripdin5v");
 
 	backTriangle.setFillColor(sf::Color(255, 191, 54, 200));
 	backTriangle.setOrigin(backTriangle.getGlobalBounds().width / 2, backTriangle.getGlobalBounds().height / 2);
@@ -190,6 +196,12 @@ void initializeSetup(){
 	UI.newRoundButton(sf::Vector2f(989, 365), sf::Vector2f(50, 50), 10, sf::Color(0, 0, 0, 0), &forwardTriangle);
 
 	UI.newRoundButton(sf::Vector2f(512, 365), sf::Vector2f(120, 50), 10, sf::Color(31, 109, 140, 200));
+	UI.newRoundButton(sf::Vector2f(153, 143), sf::Vector2f(286, 50), 10, sf::Color(145, 43, 179, 200));
+	UI.newRoundButton(sf::Vector2f(200, 332), sf::Vector2f(264, 115), 10, sf::Color(120, 120, 120, 180));
+	UI.newRoundButton(sf::Vector2f(620, 365), sf::Vector2f(220, 50), 10, sf::Color(25, 151, 156, 220));
+	UI.newRoundButton(sf::Vector2f(847, 365), sf::Vector2f(220, 50), 10, sf::Color(24, 115, 171, 180));
+
+
 
 	UI.newFade(sf::Vector2f(SETUPWINDOW_WIDTH, SETUPWINDOW_HEIGHT), 600);
 	UI.updateSetup();

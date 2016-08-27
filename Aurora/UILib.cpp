@@ -142,37 +142,18 @@ bool IL::libSetup(string path){
 bool IL::render(sf::RenderWindow& window, sf::Vector2i mousePos) {
 	amountCheckboxText = 0;
 
-	if (setupProgress == 1 || setupProgress == 2)
+	if (setupProgress == 1 || setupProgress == 2 || setupProgress == 4)
 		highlightRoundbox(mousePos);
 
-	for (int i = 4; i < amountSprite; i++) {
+	for (int i = 5; i < amountSprite; i++) {
 		window.draw(loadedSprites[i]);
 	}
 	for (int i = 0; i < amountTextLabel; i++){
-		if (i != 2 && i != 3 && i != 4)
+		if (!(i >= 2 && i <= 9))
 			window.draw(textLabel[i]);
 	}
-	for (int i = 0; i < amountCheckbox; i++){
-		window.draw(checkboxFrame[i]);
-		if (checkedBox[i])
-			window.draw(checkboxFill[i]);
-		if (textedBox[i]){
-			window.draw(checkboxText[amountCheckboxText]);
-			amountCheckboxText++;
-		}
-	}
-	for (int i = 0; i < amountDropDown; i++){
-		window.draw(dropDownBox[i]);
-		window.draw(downTria[i]);
-		window.draw(dropDownTexts[i][0]);
-		if (dropDownArea[i].open){
-			for (int t = 1; t < dropDownTexts[i].size(); t++){
-				window.draw(dropDownTexts[i][t]);
-			}
-		}
-	}
 	for (int i = 0; i < amountRoundedRectangle; i++){
-		if (i != 2) {
+		if (!(i >= 2 && i <= 6)) {
 			window.draw(roundedRectangle[i]);
 			if (roundedRectangleDrawable[i] != NULL)
 				window.draw(*roundedRectangleDrawable[i]);
@@ -271,6 +252,18 @@ bool IL::render(sf::RenderWindow& window, sf::Vector2i mousePos) {
 		window.draw(loadedSprites[3]);
 		loadedSprites[3].setPosition(230, 276);
 		window.draw(loadedSprites[3]);
+	} else if (setupProgress == 4){
+		window.draw(roundedRectangle[3]);
+		window.draw(roundedRectangle[4]);
+		window.draw(roundedRectangle[5]);
+		window.draw(roundedRectangle[6]);
+		window.draw(textLabel[5]);
+		window.draw(textLabel[6]);
+		window.draw(textLabel[7]);
+		window.draw(textLabel[8]);
+		window.draw(textLabel[9]);
+		if (selectedModel != -1)
+			window.draw(loadedSprites[4]);
 	}
 	
 	for (int i = 0; i < amountFade; i++){
@@ -345,7 +338,7 @@ bool IL::mouseClicked(sf::Vector2i mousePos, int buttonClicked){
 						fadeClock.restart();
 					}
 					return true;
-				} else if (i == 2) {
+				} else if (i == 2 && setupProgress == 2) {
 					if (doRotate) {
 						rotateChangeDir = true; 
 						changedDirRotation = rotation;
@@ -355,7 +348,15 @@ bool IL::mouseClicked(sf::Vector2i mousePos, int buttonClicked){
 						doRotate = true;
 						rotateClock.restart();
 					}
-					
+					return true;
+				} else if (i == 3 && setupProgress == 4) {
+					ShellExecute(0, 0, "http://www.google.com", 0, 0, SW_SHOW);
+					return true;
+				} else if (i == 5 && setupProgress == 4) {
+	
+					return true;
+				} else if (i == 6 && setupProgress == 4) {
+
 					return true;
 				}
 			}
@@ -419,6 +420,12 @@ bool IL::mouseClicked(sf::Vector2i mousePos, int buttonClicked){
 					textLabel[4].setString("LED amount:          " + to_string(amountLEDs));
 					return true;
 				}
+			}
+		}
+		else if (setupProgress == 4){
+			if (mousePos.x >= 639 && mousePos.x <= 639 + textLabel[9].getGlobalBounds().width && mousePos.y >= 247 && mousePos.y <= 249 + textLabel[9].getGlobalBounds().height) {
+				ShellExecute(0, 0, "https://www.arduino.cc/en/Main/Software", 0, 0, SW_SHOW);
+			return true;
 			}
 		}
 	}
@@ -617,135 +624,11 @@ bool IL::newTextLabel(int x, int y, string text, string font, int size, sf::Colo
 	setFont(label, font);
 
 	if (amountTextLabel == 2){
-		label.setOrigin(label.getGlobalBounds().width / 2, 16/* label.getGlobalBounds().height / 2*/);
-		label.move(label.getGlobalBounds().width / 2, 16/*label.getGlobalBounds().height / 2*/);
+		label.setOrigin(label.getGlobalBounds().width / 2, 16);
+		label.move(label.getGlobalBounds().width / 2, 16);
 	}
 	textLabel.push_back(label);
 	amountTextLabel++;
-	return true;
-}
-bool IL::newCheckbox(int x, int y, int vertexLenght, sf::Color color){
-	sf::RectangleShape boxFrame;
-	boxFrame.setPosition(sf::Vector2f(x, y));
-	boxFrame.setSize(sf::Vector2f(vertexLenght, vertexLenght));
-	boxFrame.setFillColor(sf::Color::Transparent);
-	boxFrame.setOutlineThickness(-1);
-	boxFrame.setOutlineColor(color);
-
-	sf::RectangleShape boxFill;
-	boxFill.setPosition(sf::Vector2f(x + fillDistance, y + fillDistance));
-	boxFill.setSize(sf::Vector2f(vertexLenght - (2 * fillDistance), vertexLenght - (2 * fillDistance)));
-	boxFill.setFillColor(color);
-
-	clickableCheckBox clickArea = {
-		x, y, x + vertexLenght, y + vertexLenght
-	};
-
-	checkboxFrame.push_back(boxFrame);
-	checkboxFill.push_back(boxFill);
-	checkboxArea.push_back(clickArea);
-	textedBox.push_back(false);
-	checkedBox.push_back(false);
-	amountCheckbox++;
-	return true;
-}
-bool IL::newCheckbox(int x, int y, int vertexLenght, sf::Color color, string text, string font, int size, sf::Color colorText, int location){
-	newCheckbox(x, y, vertexLenght, color);
-	amountCheckbox--;
-	textedBox[amountCheckbox] = true;
-
-	sf::Text boxText;
-	boxText.setString(text);
-	boxText.setCharacterSize(size);
-	boxText.setFillColor(color);
-
-	setFont(boxText, font);
-
-	switch (location){
-	case 0:
-		boxText.setPosition(sf::Vector2f(x, y - (size - boxText.getGlobalBounds().height)));
-		x = x + 7 + boxText.getGlobalBounds().width;
-		y = y + (boxText.getGlobalBounds().height / 2) - (vertexLenght / 2);
-		checkboxFrame[amountCheckbox].setPosition(sf::Vector2f(x, y));
-		checkboxFill[amountCheckbox].setPosition(sf::Vector2f(x + fillDistance, y + fillDistance));
-		checkboxArea[amountCheckbox] = { x, y, x + vertexLenght, y + vertexLenght };
-		break;
-	case 1:
-		boxText.setPosition(sf::Vector2f(x + vertexLenght + 7, y - (size - boxText.getGlobalBounds().height)));
-		y = y + (boxText.getGlobalBounds().height / 2) - (vertexLenght / 2);
-		checkboxFrame[amountCheckbox].setPosition(sf::Vector2f(x, y));
-		checkboxFill[amountCheckbox].setPosition(sf::Vector2f(x + fillDistance, y + fillDistance));
-		checkboxArea[amountCheckbox] = { x, y, x + vertexLenght, y + vertexLenght };
-		break;
-	};
-
-	checkboxText.push_back(boxText);
-	amountCheckboxText++;
-	amountCheckbox++;
-	return true;
-}
-bool IL::newDropDown(int x, int y, string defaultText, vector<string> elements, string font, int size, sf::Color colorText, sf::Color colorFill, sf::Color colorBorder){
-	vector<sf::Text> textVector;
-	dropDownTexts.push_back(textVector);
-
-	sf::Text defText;
-	defText.setString(defaultText);
-	defText.setCharacterSize(size);
-	defText.setFillColor(colorText);
-	setFont(defText, font);
-
-	dropDownTexts[amountDropDown].push_back(defText);
-
-	for (int i = 0; i < elements.size(); i++){
-		sf::Text dropText;
-		dropText.setString(elements[i]);
-		dropText.setCharacterSize(size);
-		dropText.setFillColor(colorText);
-		setFont(dropText, font);
-
-		dropDownTexts[amountDropDown].push_back(dropText);
-	}
-
-	sf::Vector2i textWidth;
-	for (int i = 0; i < dropDownTexts[amountDropDown].size(); i++){
-		if (dropDownTexts[amountDropDown][i].getGlobalBounds().width > textWidth.x){
-			textWidth.x = dropDownTexts[amountDropDown][i].getGlobalBounds().width;
-			textWidth.y = i;
-		}
-	}
-
-	sf::RectangleShape dropDown;
-
-	dropDown.setPosition(sf::Vector2f(x, y));
-	dropDown.setFillColor(colorFill);
-	dropDown.setOutlineThickness(-1);
-	dropDown.setOutlineColor(colorBorder);
-	dropDown.setSize(sf::Vector2f(dropDownTexts[amountDropDown][textWidth.y].getGlobalBounds().width + 4 * borderDistance + dropDownTexts[amountDropDown][textWidth.y].getGlobalBounds().height, dropDownTexts[amountDropDown][textWidth.y].getGlobalBounds().height + 2 * borderDistance));
-
-	sf::CircleShape triangle(dropDownTexts[amountDropDown][textWidth.y].getGlobalBounds().height / 4 + borderDistance, 3);
-	triangle.setFillColor(colorBorder);
-	triangle.setOrigin(triangle.getGlobalBounds().width / 2, triangle.getGlobalBounds().height / 2);
-	triangle.setPosition(sf::Vector2f(x + dropDown.getGlobalBounds().width - borderDistance - triangle.getGlobalBounds().width / 2, y + dropDown.getGlobalBounds().height / 2));
-	//triangle.setPosition(sf::Vector2f(x + dropDownTexts[amountDropDown][textWidth.y].getGlobalBounds().width + 2 * borderDistance, y + dropDown.getGlobalBounds().height / 2));
-	triangle.setRotation(270);
-
-	clickableDropDown clickArea = {
-		x, y, x + dropDown.getGlobalBounds().width, y + dropDown.getGlobalBounds().height, dropDownTexts[amountDropDown].size() * size + borderDistance, false
-	};
-
-	float top = dropDownTexts[amountDropDown][0].getGlobalBounds().top;
-	dropDownTexts[amountDropDown][0].setPosition(sf::Vector2f(x + borderDistance, y + dropDown.getGlobalBounds().height / 2 - dropDownTexts[amountDropDown][0].getGlobalBounds().height / 2 - top));
-
-
-	for (int i = 1; i < dropDownTexts[amountDropDown].size(); i++){
-		dropDownTexts[amountDropDown][i].setPosition(sf::Vector2f(x + borderDistance, y + dropDown.getGlobalBounds().height / 2 - dropDownTexts[amountDropDown][0].getGlobalBounds().height / 2 - top + i * size));
-	}
-
-
-	dropDownBox.push_back(dropDown);
-	downTria.push_back(triangle);
-	dropDownArea.push_back(clickArea);
-	amountDropDown++;
 	return true;
 }
 bool IL::newRoundButton(sf::Vector2f position, sf::Vector2f size, int radius, sf::Color color, sf::Drawable* d){
@@ -792,8 +675,7 @@ bool IL::updateSetup() {
 	roundedRectangle[1].setOutlineColor(goodColors[c]);
 	if (roundedRectangleDrawable[1] != NULL) {((sf::CircleShape*)roundedRectangleDrawable[1])->setFillColor(goodColors[c]);}
 	
-	switch (setupProgress)
-	{
+	switch (setupProgress){
 	case 0:
 		textLabel[0].setString("Aurora - Setup: Introduction");
 		textLabel[1].setString("Greetings! I will guide you through how to properly set up Aurora. If this is your first time using the program, \nplease read the contents of this walkthrough carefully."\
@@ -824,13 +706,38 @@ bool IL::updateSetup() {
 			textLabel[4].setString("LED amount:          N/             You have not yet selected a strip model. This setting is located on the second page.");
 		else if (supportedStrips[selectedModel].addressableText.getString() != "Addressable")
 			textLabel[4].setString("LED amount:          N/                 Your currently selected strip model is not addressable; this setting is unavailable.");
-		else 
+		else
 			textLabel[4].setString("LED amount:          " + to_string(amountLEDs));
 		break;
 
 	case 4:
 		textLabel[0].setString("Aurora - Setup: Arduino configuration");
-		textLabel[1].setString("");
+		textLabel[1].setString("The most important factor in making Aurora work is having both the wiring and the programming done \ncorrectly. If you already selected a strip model, clicking the button below will bring you to a walkthrough on \nhow to wire up"\
+			" that specific model. \n\n\n\n\nFortunately, Aurora can assist you in uploading a functional program to your Arduino. Confirm that the \nsettings below are correct and simply click the 'Push'-button to send the code to the Arduino. If you want to"\
+			" \nmanually change something in the code, you can save it as a .ino file on your computer. Please note that you \nneed to have the Arduino IDE installed, which you can download from ");
+		if (selectedModel == 0)
+			loadedSprites[4].setTexture(loadedTextures[getTexture("stripdin5v")]);
+		else if (selectedModel == 1)
+			loadedSprites[4].setTexture(loadedTextures[getTexture("striprgb12v")]);
+		else if (selectedModel == 2)
+			loadedSprites[4].setTexture(loadedTextures[getTexture("stripiltrof")]);
+
+		textLabel[6].setString("");
+		if (selectedModel != -1) 
+			textLabel[6].setString(textLabel[6].getString() + supportedStrips[selectedModel].voltageText.getString() + "\n" + supportedStrips[selectedModel].addressableText.getString() + "\n");
+		else 
+			textLabel[6].setString(textLabel[6].getString() + "No strip model" + "\n");
+		if (selectedModel != -1 && supportedStrips[selectedModel].addressableText.getString() == "Addressable")
+			textLabel[6].setString(textLabel[6].getString() + "LED amount: " + to_string(amountLEDs) + "\n");
+		if (selectedCOM != -1)
+			textLabel[6].setString(textLabel[6].getString() + activeCOMPorts[selectedCOM].namesCOM + "\n");
+		else
+			textLabel[6].setString(textLabel[6].getString() + "No COM-port" + "\n");
+		if (selectedCOM != -1)
+			textLabel[6].setString(textLabel[6].getString() + "Baud-rate: " + to_string(baudRates[selectedRate]) + "\n");
+
+		textLabel[9].setFillColor(sf::Color(35, 171, 176, 255));
+
 		break;
 
 	case 5:
@@ -870,6 +777,14 @@ bool IL::highlightRoundbox(sf::Vector2i mousePos) {
 		}
 		if (selectedCOM >= 0)
 			activeCOMPorts[selectedCOM].roundRect.setOutlineColor(sf::Color(19, 161, 237, 220));
+	}
+	else if (setupProgress == 4) {
+		roundedRectangle[3].setOutlineColor(sf::Color(145, 43, 179, 200));
+		textLabel[9].setFillColor(sf::Color(35, 171, 176, 255));
+		if (mousePos.x >= roundButtonArea[3].x1 && mousePos.x <= roundButtonArea[3].x2 && mousePos.y >= roundButtonArea[3].y1 && mousePos.y <= roundButtonArea[3].y2)
+			roundedRectangle[3].setOutlineColor(sf::Color(197, 90, 232, 210));
+		if (mousePos.x >= 639 && mousePos.x <= 639 + textLabel[9].getGlobalBounds().width && mousePos.y >= 247 && mousePos.y <= 249 + textLabel[9].getGlobalBounds().height)
+			textLabel[9].setFillColor(sf::Color(69, 231, 237, 255));
 	}
 	return true;
 }
