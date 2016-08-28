@@ -1,27 +1,24 @@
 #include <string>
 #include <SFML/Graphics.hpp>
+#include "RoundedRectangleShape.hpp"
 
 using namespace std;
+
+
 
 class IL{
 
 public:
 	bool closeAurora = false;
 
-	bool libSetup(string path = "c");
-	bool render(sf::RenderWindow& window, sf::Vector2i mousePos);
-	bool mouseClicked(sf::Vector2i mousePos, int buttonClicked);
-	bool loadFont(string fontName, string fontLabel);
-	bool loadFontFromMemory(const void* data, int sizeInBytes, string fontLabel);
-	bool loadTextureFromMemory(const void* data, int sizeInBytes, string textureLabel);
-	bool newFade(sf::Vector2f size, int durationInMilliSeconds);
-	bool newSprite(sf::Vector2f position, string textureLabel, sf::Vector2f scale = sf::Vector2f(1, 1));
-	bool addStrip(int voltage, string pins, string textureLabel, bool addressable);
-	bool newTextLabel(int x, int y, string text, string font, int size, sf::Color color = sf::Color::White);
-	bool newRoundButton(sf::Vector2f position, sf::Vector2f size, int radius, sf::Color color = sf::Color(255, 255, 255), sf::Drawable* d = NULL);
-	bool highlightRoundbox(sf::Vector2i mousePos);
-	bool updateSetup();
-	bool updateFade(int ID);
+	bool libSetup();
+	sf::Font loadFontFromMemory(const void* data, int sizeInBytes);
+	sf::Texture loadTextureFromMemory(const void* data, int sizeInBytes);
+	bool setFont(sf::Text& text, string font);
+	int getTexture(string texture);
+	sf::Sprite newSprite(sf::Vector2f position, sf::Texture textureLabel, sf::Vector2f scale = sf::Vector2f(1.f, 1.f));
+	sf::Text newTextLabel(int x, int y, string text, sf::Font font, int size, sf::Color color = sf::Color::White);
+	sf::RoundedRectangleShape newRoundButton(sf::Vector2f position, sf::Vector2f size, int radius = 10, sf::Color color = sf::Color::White);
 
 private:
 
