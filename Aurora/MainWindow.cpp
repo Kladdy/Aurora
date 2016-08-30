@@ -17,7 +17,7 @@ namespace mainWin {
 
 	//Fonts
 	struct font {
-		sf::Font textFont;
+		shared_ptr<sf::Font> textFont;
 		string fontLabel;
 	};
 	vector<font> textFonts;

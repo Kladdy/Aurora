@@ -14,9 +14,9 @@ bool IL::libSetup(){
 
 	return true;
 }
-sf::Font IL::loadFontFromMemory(const void* data, int sizeInBytes){
-	sf::Font font;
-	if (!font.loadFromMemory(data, sizeInBytes)){
+shared_ptr<sf::Font> IL::loadFontFromMemory(const void* data, int sizeInBytes){
+	shared_ptr<sf::Font> font = make_shared<sf::Font>();
+	if (!font->loadFromMemory(data, sizeInBytes)){
 		cout << "Failed to load font" << endl;
 	}
 
@@ -38,6 +38,16 @@ sf::Sprite IL::newSprite(sf::Vector2f position, sf::Texture texture, sf::Vector2
 
 	return sprite;
 }
+// shared_ptr<sf::Text> IL::newTextLabel(int x, int y, string text, sf::Font font, int size, sf::Color color) {
+// 	shared_ptr<sf::Text> label = make_shared<sf::Text>();
+// 	label.setPosition(sf::Vector2f(x, y));
+// 	label.setString(text);
+// 	label.setCharacterSize(size);
+// 	label.setFillColor(color);
+// 	label.setFont(font);
+// 
+// 	return label;
+// }
 sf::Text IL::newTextLabel(int x, int y, string text, sf::Font font, int size, sf::Color color){
 	sf::Text label;
 	label.setPosition(sf::Vector2f(x, y));

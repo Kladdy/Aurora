@@ -69,7 +69,7 @@ namespace setupWin {
 
 	//Fonts
 	struct font {
-		sf::Font textFont;
+		shared_ptr<sf::Font> textFont;
 		string fontLabel;
 	};
 	vector<font> textFonts;
@@ -124,6 +124,8 @@ void SetupWindow::updateWindow(sf::RenderWindow& window, sf::Vector2i mousePos) 
 	if (runSetup)
 		initializeSetup();
 
+	cout << textLabels[2].getFont()->getInfo().family << endl;
+
 	if (setupProgress == 1 || setupProgress == 2 || setupProgress == 4)
 		highlightRoundbox(mousePos);
 
@@ -132,7 +134,6 @@ void SetupWindow::updateWindow(sf::RenderWindow& window, sf::Vector2i mousePos) 
 	}
 	for (int i = 0; i < textLabels.size(); i++) {
 		if (!(i >= 2 && i <= 9))
-			cout << "textLabels i: " << i << endl;
 			window.draw(textLabels[i]);
 	}
 	for (int i = 0; i < roundedRectangles.size(); i++) {
@@ -389,8 +390,6 @@ void SetupWindow::mouseClicked(sf::Vector2i mousePos, int buttonClicked) {
 }
 void SetupWindow::initializeSetup() {
 
-	cout << "initializeSetup" << endl;
-
 	//Colors for back/forth buttons
 	goodColors.push_back(sf::Color(11, 176, 63, 180)); //Green
 	goodColors.push_back(sf::Color(19, 161, 237, 180)); //Blue
@@ -405,18 +404,18 @@ void SetupWindow::initializeSetup() {
 	newFont((void*)ComfortaaLight, ComfortaaLight_Size, "comfortaa");
 
 	//Text labels
-	newText(10, 7, "Aurora - Setup: Introduction", textFonts[getFont("comfortaa")].textFont, 30);
+	newText(10, 7, "Aurora - Setup: Introduction", *textFonts[getFont("comfortaa")].textFont, 30);
 	newText(10, 45, "Greetings! I will guide you through how to properly set up Aurora. If this is your first time using the program, \nplease read the contents of this walkthrough carefully."\
 		"You can re-run the setup-process by *insert feature \nto repeat setup here*. Use the arrows below in order to maneuver your way through the different options."\
-		"\n\nIf you are unsure about which settings to opt for, or you believe that something is missing or not working as \nintended, don't hesitate to contact me. *Insert methods of contacting me here*", textFonts[getFont("comfortaa")].textFont, 18);
-	newText(463, 349, "Refresh", textFonts[getFont("comfortaa")].textFont, 26);
-	newText(10, 195, "Baud-rate:     9600", textFonts[getFont("comfortaa")].textFont, 18);
-	newText(10, 265, "LED amount:          1", textFonts[getFont("comfortaa")].textFont, 18);
-	newText(20, 126, "Wiring your RGB strip", textFonts[getFont("comfortaa")].textFont, 26);
-	newText(179, 281, "", textFonts[getFont("comfortaa")].textFont, 16);
-	newText(522, 349, "Push to Arduino", textFonts[getFont("comfortaa")].textFont, 26);
-	newText(750, 349, "Save as .ino file", textFonts[getFont("comfortaa")].textFont, 26);
-	newText(639, 245, "www.arduino.cc", textFonts[getFont("comfortaa")].textFont, 18);
+		"\n\nIf you are unsure about which settings to opt for, or you believe that something is missing or not working as \nintended, don't hesitate to contact me. *Insert methods of contacting me here*", *textFonts[getFont("comfortaa")].textFont, 18);
+	newText(463, 349, "Refresh", *textFonts[getFont("comfortaa")].textFont, 26);
+	newText(10, 195, "Baud-rate:     9600", *textFonts[getFont("comfortaa")].textFont, 18);
+	newText(10, 265, "LED amount:          1", *textFonts[getFont("comfortaa")].textFont, 18);
+	newText(20, 126, "Wiring your RGB strip", *textFonts[getFont("comfortaa")].textFont, 26);
+	newText(179, 281, "", *textFonts[getFont("comfortaa")].textFont, 16);
+	newText(522, 349, "Push to Arduino", *textFonts[getFont("comfortaa")].textFont, 26);
+	newText(750, 349, "Save as .ino file", *textFonts[getFont("comfortaa")].textFont, 26);
+	newText(639, 245, "www.arduino.cc", *textFonts[getFont("comfortaa")].textFont, 18);
 
 	//Textures
 	newTexture((void*)AuroraLogo, AuroraLogo_Size, "auroralogo");
@@ -676,7 +675,7 @@ void SetupWindow::getActiveCOM() {
 
 			b.namesCOMText.setString(s);
 			b.namesCOMText.setCharacterSize(18);
-			b.namesCOMText.setFont(textFonts[getFont("comfortaa")].textFont);
+			b.namesCOMText.setFont(*textFonts[getFont("comfortaa")].textFont);
 			if (b.namesCOMText.getGlobalBounds().width > 170) {
 				do {
 					b.namesCOMText.setCharacterSize(b.namesCOMText.getCharacterSize() - 1);
@@ -687,7 +686,7 @@ void SetupWindow::getActiveCOM() {
 
 			b.portsCOMText.setString(q);
 			b.portsCOMText.setCharacterSize(19);
-			b.portsCOMText.setFont(textFonts[getFont("comfortaa")].textFont);
+			b.portsCOMText.setFont(*textFonts[getFont("comfortaa")].textFont);
 			b.portsCOMText.setOrigin(b.portsCOMText.getGlobalBounds().width / 2, 0);
 			b.portsCOMText.setPosition(sf::Vector2f(105 + 199 * activeCOMPorts.size(), 300));
 
@@ -772,13 +771,13 @@ void SetupWindow::addStrip(int voltage, string pins, string textureLabel, bool a
 
 	s.voltageText.setString("Voltage: +" + to_string(voltage) + "V");
 	s.voltageText.setCharacterSize(16);
-	s.voltageText.setFont(textFonts[getFont("comfortaa")].textFont);
+	s.voltageText.setFont(*textFonts[getFont("comfortaa")].textFont);
 	s.voltageText.setOrigin(s.voltageText.getGlobalBounds().width / 2, 0);
 	s.voltageText.setPosition(sf::Vector2f(80 + 149 * supportedStrips.size(), 254));
 
 	s.pinsText.setString("Pins: " + pins);
 	s.pinsText.setCharacterSize(15);
-	s.pinsText.setFont(textFonts[getFont("comfortaa")].textFont);
+	s.pinsText.setFont(*textFonts[getFont("comfortaa")].textFont);
 	int posOffSet = 0;
 	if (s.pinsText.getGlobalBounds().width > 125) {
 		do {
@@ -790,7 +789,7 @@ void SetupWindow::addStrip(int voltage, string pins, string textureLabel, bool a
 	s.pinsText.setPosition(sf::Vector2f(80 + 149 * supportedStrips.size(), 279 + posOffSet));
 
 	s.addressableText.setCharacterSize(16);
-	s.addressableText.setFont(textFonts[getFont("comfortaa")].textFont);
+	s.addressableText.setFont(*textFonts[getFont("comfortaa")].textFont);
 	if (addressable)
 		s.addressableText.setString("Addressable");
 	else {
