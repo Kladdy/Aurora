@@ -3,15 +3,15 @@
 #include "RoundedRectangleShape.hpp"
 #include <iostream>
 #include "enumser.h"
-#include "UILib.h"
+#include "pictures.hpp"
+#include "fonts.hpp"
+#include <time.h>
+#include <math.h> 
 
-//SIMPLIFY addStrip (use newText function etc)
-//SIMPLIFY getActiveComs (use newText function etc)
+// sf::IntRect http://screenshot.su/show.php?img=171fc403d985f488692eaab6f951b083.jpg
+// maps http://screenshot.su/show.php?img=58b6785e0eec935566d6c986fbd6ab02.jpg
 
 using namespace std;
-
-//Initialize the UI library
-IL UIsetup;
 
 namespace setupWin {
 	//A clickable rectangle struct
@@ -47,7 +47,6 @@ namespace setupWin {
 
 	//Logo glow on first page
 	sf::Clock logoGlowClock;
-	int logoGlow = 0;
 
 	//Fading transition
 	sf::Clock fadeClock;
@@ -69,7 +68,7 @@ namespace setupWin {
 
 	//Fonts
 	struct font {
-		shared_ptr<sf::Font> textFont;
+		sf::Font textFont;
 		string fontLabel;
 	};
 	vector<font> textFonts;
@@ -107,15 +106,7 @@ namespace setupWin {
 	vector<sf::Color> goodColors;
 	vector<sf::Color> evilColors;
 	int lastColor = -1;
-
 }
-//Pre-define some functions
-// bool updateSetup();
-// bool updateFade();
-// void getActiveCOM();
-// bool highlightRoundbox(sf::Vector2i mousePos);
-// sf::Texture getTexture(string texture);
-// sf::Font getFont(string font);
 
 using namespace setupWin;
 
@@ -124,18 +115,16 @@ void SetupWindow::updateWindow(sf::RenderWindow& window, sf::Vector2i mousePos) 
 	if (runSetup)
 		initializeSetup();
 
-	cout << textLabels[2].getFont()->getInfo().family << endl;
-
 	if (setupProgress == 1 || setupProgress == 2 || setupProgress == 4)
 		highlightRoundbox(mousePos);
 
 	for (int i = 5; i < loadedSprites.size(); i++) {
 		window.draw(loadedSprites[i]);
 	}
-	for (int i = 0; i < textLabels.size(); i++) {
-		if (!(i >= 2 && i <= 9))
-			window.draw(textLabels[i]);
-	}
+ 	for (int i = 0; i < textLabels.size(); i++) {
+ 		if (!(i >= 2 && i <= 9))
+ 			window.draw(textLabels[i]);
+ 	}
 	for (int i = 0; i < roundedRectangles.size(); i++) {
 		if (!(i >= 2 && i <= 6)) {
 			window.draw(roundedRectangles[i].roundedRectangle);
@@ -145,13 +134,9 @@ void SetupWindow::updateWindow(sf::RenderWindow& window, sf::Vector2i mousePos) 
 		window.draw(circleShapes[i]);
 	}
 	if (setupProgress == 0) {
-		if (logoGlow < 255 && logoGlowClock.getElapsedTime().asMilliseconds() > 30) {
-			logoGlowClock.restart();
-			logoGlow += 3;
-			if (logoGlow >= 255)
-				logoGlow = 255;
+		if (logoGlowClock.getElapsedTime().asMilliseconds() < 3000) {
 			sf::Color c = loadedSprites[1].getColor();
-			c = sf::Color(c.r, c.g, c.g, logoGlow);
+			c = sf::Color(c.r, c.g, c.g, 255 * logoGlowClock.getElapsedTime().asMilliseconds() / 3000);
 			loadedSprites[1].setColor(c);
 		}
 		window.draw(loadedSprites[0]);
@@ -258,6 +243,7 @@ void SetupWindow::updateWindow(sf::RenderWindow& window, sf::Vector2i mousePos) 
 		window.draw(fadeRectangle);
 }
 void SetupWindow::mouseClicked(sf::Vector2i mousePos, int buttonClicked) {
+
 	if (buttonClicked == 1) {
 		for (int i = 0; i < roundedRectangles.size(); i++) {
 			if (mousePos.x >= roundedRectangles[i].roundButtonArea.topLeft.x && mousePos.x <= roundedRectangles[i].roundButtonArea.bottomRight.x && mousePos.y >= roundedRectangles[i].roundButtonArea.topLeft.y && mousePos.y <= roundedRectangles[i].roundButtonArea.bottomRight.y) {
@@ -403,19 +389,22 @@ void SetupWindow::initializeSetup() {
 	//Fonts
 	newFont((void*)ComfortaaLight, ComfortaaLight_Size, "comfortaa");
 
-	//Text labels
-	newText(10, 7, "Aurora - Setup: Introduction", *textFonts[getFont("comfortaa")].textFont, 30);
+	//Textlabels
+	newText(10, 7, "Aurora - Setup: Introduction", "comfortaa", 30);
 	newText(10, 45, "Greetings! I will guide you through how to properly set up Aurora. If this is your first time using the program, \nplease read the contents of this walkthrough carefully."\
 		"You can re-run the setup-process by *insert feature \nto repeat setup here*. Use the arrows below in order to maneuver your way through the different options."\
-		"\n\nIf you are unsure about which settings to opt for, or you believe that something is missing or not working as \nintended, don't hesitate to contact me. *Insert methods of contacting me here*", *textFonts[getFont("comfortaa")].textFont, 18);
-	newText(463, 349, "Refresh", *textFonts[getFont("comfortaa")].textFont, 26);
-	newText(10, 195, "Baud-rate:     9600", *textFonts[getFont("comfortaa")].textFont, 18);
-	newText(10, 265, "LED amount:          1", *textFonts[getFont("comfortaa")].textFont, 18);
-	newText(20, 126, "Wiring your RGB strip", *textFonts[getFont("comfortaa")].textFont, 26);
-	newText(179, 281, "", *textFonts[getFont("comfortaa")].textFont, 16);
-	newText(522, 349, "Push to Arduino", *textFonts[getFont("comfortaa")].textFont, 26);
-	newText(750, 349, "Save as .ino file", *textFonts[getFont("comfortaa")].textFont, 26);
-	newText(639, 245, "www.arduino.cc", *textFonts[getFont("comfortaa")].textFont, 18);
+		"\n\nIf you are unsure about which settings to opt for, or you believe that something is missing or not working as \nintended, don't hesitate to contact me. *Insert methods of contacting me here*", "comfortaa", 18);
+	newText(463, 349, "Refresh", "comfortaa", 26);
+	newText(10, 195, "Baud-rate:     9600", "comfortaa", 18);
+	newText(10, 265, "LED amount:          1", "comfortaa", 18);
+	newText(20, 126, "Wiring your RGB strip", "comfortaa", 26);
+	newText(179, 281, "", "comfortaa", 16);
+	newText(522, 349, "Push to Arduino", "comfortaa", 26);
+	newText(750, 349, "Save as .ino file", "comfortaa", 26);
+	newText(639, 245, "www.arduino.cc", "comfortaa", 18);
+	textLabels[2].setOrigin(textLabels[2].getGlobalBounds().width / 2, 16);
+	textLabels[2].move(textLabels[2].getGlobalBounds().width / 2, 16);
+
 
 	//Textures
 	newTexture((void*)AuroraLogo, AuroraLogo_Size, "auroralogo");
@@ -427,11 +416,13 @@ void SetupWindow::initializeSetup() {
 	newTexture((void*)StripIltrof, StripIltrof_Size, "stripiltrof");
 
 	//Sprites
-	newSprite(sf::Vector2f(512, 280), loadedTextures[getTexture("auroralogo")].loadedTexture);
-	newSprite(sf::Vector2f(512, 280), loadedTextures[getTexture("auroralogoglow")].loadedTexture);
-	newSprite(sf::Vector2f(-300, -300), loadedTextures[getTexture("arduinologo")].loadedTexture);
-	newSprite(sf::Vector2f(120, 206), loadedTextures[getTexture("baudarrow")].loadedTexture);
-	newSprite(sf::Vector2f(125, 333), loadedTextures[getTexture("stripdin5v")].loadedTexture);
+	newSprite(sf::Vector2f(512, 280), "auroralogo");
+	newSprite(sf::Vector2f(512, 280), "auroralogoglow");
+	newSprite(sf::Vector2f(-300, -300), "arduinologo");
+	newSprite(sf::Vector2f(120, 206), "baudarrow");
+	newSprite(sf::Vector2f(125, 333), "stripdin5v");
+	for (int i = 0; i < 4; i++) {
+		loadedSprites[i].setOrigin(loadedSprites[i].getGlobalBounds().width / 2, loadedSprites[i].getGlobalBounds().height / 2);}
 
 	//Strips
 	addStrip(5, "DIN, +5V & GND", "stripdin5v", true);
@@ -459,6 +450,7 @@ void SetupWindow::initializeSetup() {
 }
 
 void SetupWindow::updateSetup() {
+
 	srand(time(NULL));
 
 	int c;
@@ -487,7 +479,7 @@ void SetupWindow::updateSetup() {
 		textLabels[1].setString("Greetings! I will guide you through how to properly set up Aurora. If this is your first time using the program, \nplease read the contents of this walkthrough carefully."\
 			" You can re-run the setup-process by *insert feature \nto repeat setup here*. Use the arrows below in order to maneuver your way through the different options."\
 			"\n\nIf you are unsure about which settings to opt for, or you believe that something is missing or not working as \nintended, don't hesitate to contact me. *Insert methods of contacting me here*");
-		logoGlow = 0;
+		logoGlowClock.restart();
 		break;
 
 	case 1:
@@ -556,8 +548,10 @@ void SetupWindow::updateSetup() {
 		textLabels[1].setString("");
 		break;
 	}
+
 }
 void SetupWindow::updateFade() {
+
 	if (fadeDir) {
 		int i;
 
@@ -593,6 +587,7 @@ void SetupWindow::updateFade() {
 	fadeRectangle.setFillColor(sf::Color(0, 0, 0, fade));
 }
 void SetupWindow::highlightRoundbox(sf::Vector2i mousePos) {
+
 	if (setupProgress == 1) {
 		for (int i = 0; i < supportedStrips.size(); i++) {
 			if (i != selectedModel)
@@ -626,6 +621,7 @@ void SetupWindow::highlightRoundbox(sf::Vector2i mousePos) {
 	}
 }
 void SetupWindow::getActiveCOM() {
+
 	CEnumerateSerial::CPortsArray ports;
 	CEnumerateSerial::CNamesArray names;
 #ifdef CENUMERATESERIAL_USE_STL
@@ -675,7 +671,7 @@ void SetupWindow::getActiveCOM() {
 
 			b.namesCOMText.setString(s);
 			b.namesCOMText.setCharacterSize(18);
-			b.namesCOMText.setFont(*textFonts[getFont("comfortaa")].textFont);
+			b.namesCOMText.setFont(textFonts[getFont("comfortaa")].textFont);
 			if (b.namesCOMText.getGlobalBounds().width > 170) {
 				do {
 					b.namesCOMText.setCharacterSize(b.namesCOMText.getCharacterSize() - 1);
@@ -686,7 +682,7 @@ void SetupWindow::getActiveCOM() {
 
 			b.portsCOMText.setString(q);
 			b.portsCOMText.setCharacterSize(19);
-			b.portsCOMText.setFont(*textFonts[getFont("comfortaa")].textFont);
+			b.portsCOMText.setFont(textFonts[getFont("comfortaa")].textFont);
 			b.portsCOMText.setOrigin(b.portsCOMText.getGlobalBounds().width / 2, 0);
 			b.portsCOMText.setPosition(sf::Vector2f(105 + 199 * activeCOMPorts.size(), 300));
 
@@ -718,28 +714,68 @@ void SetupWindow::getActiveCOM() {
 }
 
 void SetupWindow::newFont(const void* data, int sizeInBytes, string label) {
-	textFonts.push_back({ UIsetup.loadFontFromMemory((void*)data, sizeInBytes), label });
+
+	sf::Font font;
+	if (!font.loadFromMemory(data, sizeInBytes)) {
+		cout << "Failed to load font" << endl;
+		return;
+	}
+	
+	textFonts.push_back({ font, label });
 }
-void SetupWindow::newText(int x, int y, string text, sf::Font font, int size, sf::Color color) {
-	textLabels.push_back(UIsetup.newTextLabel(x, y, text, font, size, color));
+void SetupWindow::newText(int x, int y, string text, string font, int size, sf::Color color) {
+
+	sf::Text label;
+	label.setPosition(sf::Vector2f(x, y));
+	label.setString(text);
+	label.setCharacterSize(size);
+	label.setFillColor(color);
+	label.setFont(textFonts[getFont("comfortaa")].textFont);
+
+	textLabels.push_back(label);
 }
 void SetupWindow::newTexture(const void* data, int sizeInBytes, string label) {
-	loadedTextures.push_back({ UIsetup.loadTextureFromMemory((void*)data, sizeInBytes), label });
+
+	sf::Texture texture;
+	if (!texture.loadFromMemory(data, sizeInBytes)) {
+		cout << "Failed to load texture" << endl;
+		return;
+	}
+	texture.setSmooth(true);
+
+	loadedTextures.push_back({ texture, label });
 }
-void SetupWindow::newSprite(sf::Vector2f position, sf::Texture texture, sf::Vector2f scale) {
-	loadedSprites.push_back(UIsetup.newSprite(position, texture, scale));
+void SetupWindow::newSprite(sf::Vector2f position, string texture, sf::Vector2f scale) {
+
+	sf::Sprite sprite;
+	sprite.setTexture(loadedTextures[getTexture(texture)].loadedTexture);
+	sprite.setScale(scale);
+	sprite.setPosition(position);
+
+	loadedSprites.push_back(sprite);
 }
 void SetupWindow::newRoundRectangle(sf::Vector2f position, sf::Vector2f size, int radius, sf::Color color) {
+
 	roundRectangle r;
-	r.roundedRectangle = UIsetup.newRoundButton(position, size, radius, color);
+
+	r.roundedRectangle = sf::RoundedRectangleShape(size, radius, 10);
+	r.roundedRectangle.setOutlineThickness(-3);
+	r.roundedRectangle.setOrigin(r.roundedRectangle.getGlobalBounds().width / 2, r.roundedRectangle.getGlobalBounds().height / 2);
+	r.roundedRectangle.setPosition(position);
+	r.roundedRectangle.setFillColor(sf::Color::Transparent);
+	r.roundedRectangle.setOutlineColor(color);
+
+	int w = r.roundedRectangle.getGlobalBounds().width / 2;
+	int h = r.roundedRectangle.getGlobalBounds().height / 2;
 
 	r.roundButtonArea = {
-		sf::Vector2i(position.x, position.y), sf::Vector2i(position.x + size.x, position.y + size.y)
+		sf::Vector2i(position.x - w, position.y - h), sf::Vector2i(position.x - w + size.x, position.y - h + size.y)
 	};
 
 	roundedRectangles.push_back(r);
 }
 void SetupWindow::newCircleShape(sf::Vector2f position, int radius, int corners, sf::Color color, int rotation) {
+
 	sf::CircleShape c(radius, corners);
 	c.setFillColor(color);
 	c.setOrigin(c.getGlobalBounds().width / 2, c.getGlobalBounds().height / 2);
@@ -750,6 +786,7 @@ void SetupWindow::newCircleShape(sf::Vector2f position, int radius, int corners,
 }
 
 void SetupWindow::transitionFade(sf::Vector2f size, int duration) {
+
 	sf::RectangleShape rect = sf::RectangleShape(size);
 	rect.setFillColor(sf::Color(0, 0, 0, 0));
 	fadeRectangle = rect;
@@ -761,6 +798,7 @@ void SetupWindow::transitionFade(sf::Vector2f size, int duration) {
 	fadeWaitDuration = duration;
 }
 void SetupWindow::addStrip(int voltage, string pins, string textureLabel, bool addressable) {
+
 	ledStrip s;
 
 	s.roundRect = sf::RoundedRectangleShape(sf::Vector2f(140, 196), 10, 10);
@@ -771,13 +809,13 @@ void SetupWindow::addStrip(int voltage, string pins, string textureLabel, bool a
 
 	s.voltageText.setString("Voltage: +" + to_string(voltage) + "V");
 	s.voltageText.setCharacterSize(16);
-	s.voltageText.setFont(*textFonts[getFont("comfortaa")].textFont);
+	s.voltageText.setFont(textFonts[getFont("comfortaa")].textFont);
 	s.voltageText.setOrigin(s.voltageText.getGlobalBounds().width / 2, 0);
 	s.voltageText.setPosition(sf::Vector2f(80 + 149 * supportedStrips.size(), 254));
 
 	s.pinsText.setString("Pins: " + pins);
 	s.pinsText.setCharacterSize(15);
-	s.pinsText.setFont(*textFonts[getFont("comfortaa")].textFont);
+	s.pinsText.setFont(textFonts[getFont("comfortaa")].textFont);
 	int posOffSet = 0;
 	if (s.pinsText.getGlobalBounds().width > 125) {
 		do {
@@ -789,7 +827,7 @@ void SetupWindow::addStrip(int voltage, string pins, string textureLabel, bool a
 	s.pinsText.setPosition(sf::Vector2f(80 + 149 * supportedStrips.size(), 279 + posOffSet));
 
 	s.addressableText.setCharacterSize(16);
-	s.addressableText.setFont(*textFonts[getFont("comfortaa")].textFont);
+	s.addressableText.setFont(textFonts[getFont("comfortaa")].textFont);
 	if (addressable)
 		s.addressableText.setString("Addressable");
 	else {
@@ -811,6 +849,7 @@ void SetupWindow::addStrip(int voltage, string pins, string textureLabel, bool a
 }
 
 int SetupWindow::getFont(string font) {
+
 	for (int i = 0; i < textFonts.size(); i++) {
 		if (textFonts[i].fontLabel == font) {
 			return i;
@@ -822,6 +861,7 @@ int SetupWindow::getFont(string font) {
 	}
 }
 int SetupWindow::getTexture(string texture) {
+
 	for (int i = 0; i < loadedTextures.size(); i++) {
 		if (loadedTextures[i].textureLabel == texture) {
 			return i;
@@ -832,8 +872,3 @@ int SetupWindow::getTexture(string texture) {
 		}
 	}
 }
-
-// if (amountTextLabel == 2) {
-// 	label.setOrigin(label.getGlobalBounds().width / 2, 16);
-// 	label.move(label.getGlobalBounds().width / 2, 16);
-// }

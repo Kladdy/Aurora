@@ -9,7 +9,7 @@
 #include "stdafx.h"
 #include "SetupWindow.h"
 #include "MainWindow.h"
-#include "UILib.h"
+#include "resource.h"
 
 #include <chrono>
 #include <thread>
@@ -34,7 +34,6 @@ sf::Clock limitClock;
 sf::Clock mainLimitClock;
 
  //Initialize user-interface library & the windows
-IL UI;
 SetupWindow SW;
 MainWindow MW;
 
@@ -194,9 +193,6 @@ int main(){
 		if (limitClock.getElapsedTime().asMilliseconds() > 20) {
 			limitClock.restart();
 
-			if (UI.closeAurora)
-				return 0;
-
 			if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
 				TranslateMessage(&msg);
 				DispatchMessage(&msg);
@@ -209,8 +205,9 @@ int main(){
 			if (mainWindow.isVisible())
 				mainWindow.loop();
 
-			if (setupWindow.isVisible())
+			if (setupWindow.isVisible()) {
 				setupWindow.loop();
+			}
 
 			if (trayWindow.isVisible())
 				trayWindow.loop();

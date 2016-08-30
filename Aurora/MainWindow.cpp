@@ -1,13 +1,10 @@
 #include "MainWindow.h"
 #include <SFML/Graphics.hpp>
-#include "RoundedRectangleShape.hpp"
 #include <iostream>
-#include "UILib.h"
+#include "pictures.hpp"
+#include "fonts.hpp"
 
 using namespace std;
-
-//Initialize the UI library
-IL UImain;
 
 namespace mainWin {
 	//A clickable rectangle struct
@@ -17,7 +14,7 @@ namespace mainWin {
 
 	//Fonts
 	struct font {
-		shared_ptr<sf::Font> textFont;
+		sf::Font textFont;
 		string fontLabel;
 	};
 	vector<font> textFonts;
@@ -76,20 +73,58 @@ void MainWindow::mouseClicked(sf::Vector2i mousePos, int buttonClicked) {
 }
 
 void MainWindow::newFont(const void* data, int sizeInBytes, string label) {
-	textFonts.push_back({ UImain.loadFontFromMemory((void*)data, sizeInBytes), label });
+
+	sf::Font font;
+	if (!font.loadFromMemory(data, sizeInBytes)) {
+		cout << "Failed to load font" << endl;
+		return;
+	}
+	else {
+		cout << "successfully made font" << endl;
+	}
+
+	textFonts.push_back({ font, label });
 }
 void MainWindow::newText(int x, int y, string text, sf::Font font, int size, sf::Color color) {
-	textLabels.push_back(UImain.newTextLabel(x, y, text, font, size, color));
+
+	sf::Text label;
+	label.setPosition(sf::Vector2f(x, y));
+	label.setString(text);
+	label.setCharacterSize(size);
+	label.setFillColor(color);
+	label.setFont(textFonts[getFont("comfortaa")].textFont);
+
+	textLabels.push_back(label);
 }
 void MainWindow::newTexture(const void* data, int sizeInBytes, string label) {
-	loadedTextures.push_back({ UImain.loadTextureFromMemory((void*)data, sizeInBytes), label });
+
+	sf::Texture texture;
+	if (!texture.loadFromMemory(data, sizeInBytes)) {
+		cout << "Failed to load texture" << endl;
+		return;
+	}
+	texture.setSmooth(true);
+
+	loadedTextures.push_back({ texture, label });
 }
 void MainWindow::newSprite(sf::Vector2f position, sf::Texture texture, sf::Vector2f scale) {
-	loadedSprites.push_back(UImain.newSprite(position, texture, scale));
+
+	sf::Sprite sprite;
+	sprite.setTexture(texture);
+	sprite.setScale(scale);
+	sprite.setPosition(position);
+
+	loadedSprites.push_back(sprite);
 }
 void MainWindow::newRoundRectangle(sf::Vector2f position, sf::Vector2f size, int radius, sf::Color color) {
+
 	roundRectangle r;
-	r.roundedRectangle = UImain.newRoundButton(position, size, radius, color);
+
+	r.roundedRectangle = sf::RoundedRectangleShape(size, radius, 10);
+	r.roundedRectangle.setOutlineThickness(-3);
+	r.roundedRectangle.setPosition(position);
+	r.roundedRectangle.setFillColor(sf::Color::Transparent);
+	r.roundedRectangle.setOutlineColor(color);
 
 	r.roundButtonArea = {
 		sf::Vector2i(position.x, position.y), sf::Vector2i(position.x + size.x, position.y + size.y)
@@ -98,6 +133,7 @@ void MainWindow::newRoundRectangle(sf::Vector2f position, sf::Vector2f size, int
 	roundedRectangles.push_back(r);
 }
 void MainWindow::newCircleShape(sf::Vector2f position, int radius, int corners, sf::Color color, int rotation) {
+
 	sf::CircleShape c(radius, corners);
 	c.setFillColor(color);
 	c.setOrigin(c.getGlobalBounds().width / 2, c.getGlobalBounds().height / 2);
@@ -106,3 +142,29 @@ void MainWindow::newCircleShape(sf::Vector2f position, int radius, int corners, 
 
 	circleShapes.push_back(c);
 }
+
+int MainWindow::getFont(string font) {
+
+	for (int i = 0; i < textFonts.size(); i++) {
+		if (textFonts[i].fontLabel == font) {
+			return i;
+		}
+		else if (i == (textFonts.size() - 1)) {
+			cout << "A font with the label " + font + " has not been initialized" << endl;
+			return -1;
+		}
+	}
+}
+int MainWindow::getTexture(string texture) {
+
+	for (int i = 0; i < loadedTextures.size(); i++) {
+		if (loadedTextures[i].textureLabel == texture) {
+			return i;
+		}
+		else if (i == (loadedTextures.size() - 1)) {
+			cout << "A texture with the label " + texture + " has not been initialized" << endl;
+			return -1;
+		}
+	}
+}
+
