@@ -7,7 +7,6 @@
 #include <functional>
 #include <Windows.h>
 #include "stdafx.h"
-#include "resource.h"
 #include "SetupWindow.h"
 #include "MainWindow.h"
 #include "UILib.h"
@@ -81,9 +80,8 @@ void AuroraMain(sf::RenderWindow* w) {
 	while (window.pollEvent(event)) {
 		if (event.type == sf::Event::Closed)
 			mainWindow.inst.setVisible(false);
-		if (event.type == sf::Event::MouseButtonPressed && sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
+		if (event.type == sf::Event::MouseButtonPressed && sf::Mouse::isButtonPressed(sf::Mouse::Left))
 			MW.mouseClicked(mousePos, 1);
-		}
 	}
 
 	window.clear(sf::Color::Black);
@@ -101,9 +99,8 @@ void AuroraSetup(sf::RenderWindow* w) {
 	while (window.pollEvent(event)) {
 		if (event.type == sf::Event::Closed)
 			setupWindow.inst.setVisible(false);
-		if (event.type == sf::Event::MouseButtonPressed && sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
+		if (event.type == sf::Event::MouseButtonPressed && sf::Mouse::isButtonPressed(sf::Mouse::Left)) 
 			SW.mouseClicked(mousePos, 1);
-		}
 	}
 
 	window.clear(sf::Color::Black);
@@ -133,8 +130,8 @@ void AuroraTray(sf::RenderWindow* w){
 		if (event.type == sf::Event::Closed)
 			window.close();
 		if (event.type == sf::Event::MouseButtonPressed && sf::Mouse::isButtonPressed(sf::Mouse::Left)){
-			mainWindow.inst.setVisible(true);
-			SetForegroundWindow(mainWindow.inst.getSystemHandle());
+			setupWindow.inst.setVisible(true);
+			SetForegroundWindow(setupWindow.inst.getSystemHandle());
 			focusMain = true;
 		}
 	}

@@ -1,8 +1,6 @@
 #include "MainWindow.h"
 #include <SFML/Graphics.hpp>
 #include "RoundedRectangleShape.hpp"
-#include "pictures.hpp"
-#include "fonts.hpp"
 #include <iostream>
 #include "UILib.h"
 
@@ -11,41 +9,45 @@ using namespace std;
 //Initialize the UI library
 IL UImain;
 
-//A clickable rectangle struct
-struct clickableArea {
-	sf::Vector2i topLeft, bottomRight;
-};
+namespace mainWin {
+	//A clickable rectangle struct
+	struct clickableArea {
+		sf::Vector2i topLeft, bottomRight;
+	};
 
-//Fonts
-struct font {
-	sf::Font textFont;
-	string fontLabel;
-};
-vector<font> textFonts;
+	//Fonts
+	struct font {
+		sf::Font textFont;
+		string fontLabel;
+	};
+	vector<font> textFonts;
 
-//Text labels
-vector<sf::Text> textLabels;
+	//Text labels
+	vector<sf::Text> textLabels;
 
-//Textures
-struct texture {
-	sf::Texture loadedTexture;
-	string textureLabel;
-};
-vector<texture> loadedTextures;
-sf::Texture t;
+	//Textures
+	struct texture {
+		sf::Texture loadedTexture;
+		string textureLabel;
+	};
+	vector<texture> loadedTextures;
+	sf::Texture t;
 
-//Sprites
-vector<sf::Sprite> loadedSprites;
+	//Sprites
+	vector<sf::Sprite> loadedSprites;
 
-//Rounded rectangles
-struct roundRectangle {
-	sf::RoundedRectangleShape roundedRectangle;
-	clickableArea roundButtonArea;
-};
-vector<roundRectangle> roundedRectangles;
+	//Rounded rectangles
+	struct roundRectangle {
+		sf::RoundedRectangleShape roundedRectangle;
+		clickableArea roundButtonArea;
+	};
+	vector<roundRectangle> roundedRectangles;
 
-//CircleShapes
-vector<sf::CircleShape> circleShapes;
+	//CircleShapes
+	vector<sf::CircleShape> circleShapes;
+}
+
+using namespace mainWin;
 
 void MainWindow::updateWindow(sf::RenderWindow& window, sf::Vector2i mousePos) {
 	for (int i = 5; i < loadedSprites.size(); i++) {

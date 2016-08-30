@@ -8,6 +8,7 @@ class SetupWindow {
 public:
 	void updateWindow(sf::RenderWindow& window, sf::Vector2i mousePos);
 	void mouseClicked(sf::Vector2i mousePos, int buttonClicked);
+	
 
 private:
 	void initializeSetup();
@@ -26,6 +27,6 @@ private:
 	void transitionFade(sf::Vector2f size, int duration);
 	void addStrip(int voltage, string pins, string textureLabel, bool addressable);
 
-	sf::Font getFont(string font);
-	sf::Texture getTexture(string texture);
+	int getFont(string font);
+	int getTexture(string texture);
 };
