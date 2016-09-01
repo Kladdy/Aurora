@@ -1,6 +1,5 @@
 #pragma once
 #include "stdafx.h"
-#include <SFML/Graphics.hpp>
 #include "RoundedRectangleShape.hpp"
 
 using namespace std;

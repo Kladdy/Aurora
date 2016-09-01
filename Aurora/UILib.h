@@ -1,9 +1,7 @@
 #include <string>
-#include <SFML/Graphics.hpp>
 #include "RoundedRectangleShape.hpp"
 #include "pictures.hpp"
 #include "fonts.hpp"
-#include <memory>
 
 using namespace std;
 

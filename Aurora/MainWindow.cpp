@@ -1,6 +1,4 @@
 #include "MainWindow.h"
-#include <SFML/Graphics.hpp>
-#include <iostream>
 #include "pictures.hpp"
 #include "fonts.hpp"
 

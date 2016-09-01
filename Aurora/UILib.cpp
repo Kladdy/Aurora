@@ -1,8 +1,6 @@
 #include "stdafx.h"
 #include "UILib.h"
-#include <SFML/Graphics.hpp>
 #include <string>
-#include <iostream>
 #include "RoundedRectangleShape.hpp" 
 #include <stdlib.h>     
 #include <time.h>

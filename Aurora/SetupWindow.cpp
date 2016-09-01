@@ -1,30 +1,23 @@
 #include "SetupWindow.h"
-#include <SFML/Graphics.hpp>
 #include "RoundedRectangleShape.hpp"
-#include <iostream>
 #include "enumser.h"
 #include "pictures.hpp"
 #include "fonts.hpp"
 #include <time.h>
 #include <math.h> 
 
-// sf::IntRect http://screenshot.su/show.php?img=171fc403d985f488692eaab6f951b083.jpg
 // maps http://screenshot.su/show.php?img=58b6785e0eec935566d6c986fbd6ab02.jpg
 
 using namespace std;
 
 namespace setupWin {
-	//A clickable rectangle struct
-	struct clickableArea {
-		sf::Vector2i topLeft, bottomRight;
-	};
 
 	//Stips
 	struct ledStrip {
 		sf::RoundedRectangleShape roundRect;
 		sf::Text voltageText, pinsText, addressableText;
 		sf::Sprite image;
-		clickableArea supportedStripsArea;
+		sf::IntRect supportedStripsArea;
 	};
 	vector<ledStrip> supportedStrips;
 	int selectedModel = -1;
@@ -35,7 +28,7 @@ namespace setupWin {
 		string namesCOM, portsCOM;
 		sf::Text namesCOMText, portsCOMText;
 		bool isArduino;
-		clickableArea activeCOMPortsArea;
+		sf::IntRect activeCOMPortsArea;
 	};
 	vector<comButton> activeCOMPorts;
 	int selectedCOM = -1;
@@ -90,7 +83,7 @@ namespace setupWin {
 	//Rounded rectangles
 	struct roundRectangle {
 		sf::RoundedRectangleShape roundedRectangle;
-		clickableArea roundButtonArea;
+		sf::IntRect roundButtonArea;
 	};
 	vector<roundRectangle> roundedRectangles;
 
@@ -243,10 +236,9 @@ void SetupWindow::updateWindow(sf::RenderWindow& window, sf::Vector2i mousePos) 
 		window.draw(fadeRectangle);
 }
 void SetupWindow::mouseClicked(sf::Vector2i mousePos, int buttonClicked) {
-
 	if (buttonClicked == 1) {
 		for (int i = 0; i < roundedRectangles.size(); i++) {
-			if (mousePos.x >= roundedRectangles[i].roundButtonArea.topLeft.x && mousePos.x <= roundedRectangles[i].roundButtonArea.bottomRight.x && mousePos.y >= roundedRectangles[i].roundButtonArea.topLeft.y && mousePos.y <= roundedRectangles[i].roundButtonArea.bottomRight.y) {
+			if (roundedRectangles[i].roundButtonArea.contains(mousePos)) {
 				if (i == 0) {
 					if (setupProgress != 0 && !(doFade && fadeDir)) {
 						if (doFade) {
@@ -302,7 +294,7 @@ void SetupWindow::mouseClicked(sf::Vector2i mousePos, int buttonClicked) {
 		}
 		if (setupProgress == 1) {
 			for (int i = 0; i < supportedStrips.size(); i++) {
-				if (mousePos.x >= supportedStrips[i].supportedStripsArea.topLeft.x && mousePos.x <= supportedStrips[i].supportedStripsArea.bottomRight.x && mousePos.y >= supportedStrips[i].supportedStripsArea.topLeft.y && mousePos.y <= supportedStrips[i].supportedStripsArea.bottomRight.y) {
+				if (supportedStrips[i].supportedStripsArea.contains(mousePos)) {
 					selectedModel = i;
 					supportedStrips[i].roundRect.setOutlineColor(sf::Color(19, 161, 237, 220));
 					return;
@@ -311,7 +303,7 @@ void SetupWindow::mouseClicked(sf::Vector2i mousePos, int buttonClicked) {
 		}
 		else if (setupProgress == 2) {
 			for (int i = 0; i < activeCOMPorts.size(); i++) {
-				if (mousePos.x >= activeCOMPorts[i].activeCOMPortsArea.topLeft.x && mousePos.x <= activeCOMPorts[i].activeCOMPortsArea.bottomRight.x && mousePos.y >= activeCOMPorts[i].activeCOMPortsArea.topLeft.y && mousePos.y <= activeCOMPorts[i].activeCOMPortsArea.bottomRight.y) {
+				if (activeCOMPorts[i].activeCOMPortsArea.contains(mousePos)) {
 					selectedCOM = i;
 					activeCOMPorts[i].roundRect.setOutlineColor(sf::Color(19, 161, 237, 220));
 					return;
@@ -421,8 +413,9 @@ void SetupWindow::initializeSetup() {
 	newSprite(sf::Vector2f(-300, -300), "arduinologo");
 	newSprite(sf::Vector2f(120, 206), "baudarrow");
 	newSprite(sf::Vector2f(125, 333), "stripdin5v");
-	for (int i = 0; i < 4; i++) {
+	for (int i = 0; i < 5; i++) {
 		loadedSprites[i].setOrigin(loadedSprites[i].getGlobalBounds().width / 2, loadedSprites[i].getGlobalBounds().height / 2);}
+	
 
 	//Strips
 	addStrip(5, "DIN, +5V & GND", "stripdin5v", true);
@@ -592,7 +585,7 @@ void SetupWindow::highlightRoundbox(sf::Vector2i mousePos) {
 		for (int i = 0; i < supportedStrips.size(); i++) {
 			if (i != selectedModel)
 				supportedStrips[i].roundRect.setOutlineColor(sf::Color(120, 120, 120, 180));
-			if (mousePos.x >= supportedStrips[i].supportedStripsArea.topLeft.x && mousePos.x <= supportedStrips[i].supportedStripsArea.bottomRight.x && mousePos.y >= supportedStrips[i].supportedStripsArea.topLeft.y && mousePos.y <= supportedStrips[i].supportedStripsArea.bottomRight.y)
+			if (supportedStrips[i].supportedStripsArea.contains(mousePos))
 				supportedStrips[i].roundRect.setOutlineColor(sf::Color(242, 242, 242, 210));
 		}
 		if (selectedModel >= 0)
@@ -604,7 +597,7 @@ void SetupWindow::highlightRoundbox(sf::Vector2i mousePos) {
 				activeCOMPorts[i].roundRect.setOutlineColor(sf::Color(120, 120, 120, 180));
 				if (activeCOMPorts[i].isArduino)
 					activeCOMPorts[i].roundRect.setOutlineColor(sf::Color(25, 151, 156, 220));
-				if (mousePos.x >= activeCOMPorts[i].activeCOMPortsArea.topLeft.x && mousePos.x <= activeCOMPorts[i].activeCOMPortsArea.bottomRight.x && mousePos.y >= activeCOMPorts[i].activeCOMPortsArea.topLeft.y && mousePos.y <= activeCOMPorts[i].activeCOMPortsArea.bottomRight.y)
+				if (activeCOMPorts[i].activeCOMPortsArea.contains(mousePos))
 					activeCOMPorts[i].roundRect.setOutlineColor(sf::Color(242, 242, 242, 210));
 			}
 		}
@@ -614,7 +607,7 @@ void SetupWindow::highlightRoundbox(sf::Vector2i mousePos) {
 	else if (setupProgress == 4) {
 		roundedRectangles[3].roundedRectangle.setOutlineColor(sf::Color(145, 43, 179, 200));
 		textLabels[9].setFillColor(sf::Color(35, 171, 176, 255));
-		if (mousePos.x >= roundedRectangles[3].roundButtonArea.topLeft.x && mousePos.x <= roundedRectangles[3].roundButtonArea.bottomRight.x && mousePos.y >= roundedRectangles[3].roundButtonArea.topLeft.y && mousePos.y <= roundedRectangles[3].roundButtonArea.bottomRight.y)
+		if (roundedRectangles[3].roundButtonArea.contains(mousePos))
 			roundedRectangles[3].roundedRectangle.setOutlineColor(sf::Color(197, 90, 232, 210));
 		if (mousePos.x >= 639 && mousePos.x <= 639 + textLabels[9].getGlobalBounds().width && mousePos.y >= 247 && mousePos.y <= 249 + textLabels[9].getGlobalBounds().height)
 			textLabels[9].setFillColor(sf::Color(69, 231, 237, 255));
@@ -692,9 +685,7 @@ void SetupWindow::getActiveCOM() {
 			else
 				b.isArduino = false;
 
-			b.activeCOMPortsArea = {
-				sf::Vector2i((10 + 199 * activeCOMPorts.size()), 135), sf::Vector2i((200 + 199 * activeCOMPorts.size()), 331)
-			};
+			b.activeCOMPortsArea = sf::IntRect(10 + 199 * activeCOMPorts.size(), 135, 190, 196);
 
 			activeCOMPorts.push_back(b);
 		}
@@ -755,7 +746,6 @@ void SetupWindow::newSprite(sf::Vector2f position, string texture, sf::Vector2f 
 	loadedSprites.push_back(sprite);
 }
 void SetupWindow::newRoundRectangle(sf::Vector2f position, sf::Vector2f size, int radius, sf::Color color) {
-
 	roundRectangle r;
 
 	r.roundedRectangle = sf::RoundedRectangleShape(size, radius, 10);
@@ -768,9 +758,7 @@ void SetupWindow::newRoundRectangle(sf::Vector2f position, sf::Vector2f size, in
 	int w = r.roundedRectangle.getGlobalBounds().width / 2;
 	int h = r.roundedRectangle.getGlobalBounds().height / 2;
 
-	r.roundButtonArea = {
-		sf::Vector2i(position.x - w, position.y - h), sf::Vector2i(position.x - w + size.x, position.y - h + size.y)
-	};
+	r.roundButtonArea = sf::IntRect(position.x - w, position.y - h, size.x, size.y);
 
 	roundedRectangles.push_back(r);
 }
@@ -841,9 +829,7 @@ void SetupWindow::addStrip(int voltage, string pins, string textureLabel, bool a
 	s.image.setOrigin(sf::Vector2f(s.image.getGlobalBounds().width / 2, s.image.getGlobalBounds().height / 2));
 	s.image.setPosition(sf::Vector2f(80 + 149 * supportedStrips.size(), 200));
 
-	s.supportedStripsArea = {
-		sf::Vector2i((10 + 149 * supportedStrips.size()), 135), sf::Vector2i(140 + (10 + 149 * supportedStrips.size()), 331)
-	};
+	s.supportedStripsArea = sf::IntRect(10 + 149 * supportedStrips.size(), 135, 140, 196);
 
 	supportedStrips.push_back(s);
 }

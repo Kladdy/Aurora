@@ -2,8 +2,6 @@
 //   w
 //Before release: Link sfml-main.lib and set subsystem under linker->system to Windows (/SUBSYSTEM:WINDOWS)
 
-#include <iostream>
-#include <SFML/Graphics.hpp>
 #include <functional>
 #include <Windows.h>
 #include "stdafx.h"
