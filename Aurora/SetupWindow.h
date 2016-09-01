@@ -1,6 +1,5 @@
 #pragma once
 #include "stdafx.h"
-#include <SFML/Graphics.hpp>
 #include "RoundedRectangleShape.hpp"
 
 using namespace std;
@@ -19,6 +18,7 @@ private:
 	void newSprite(sf::Vector2f position, string textureLabel, sf::Vector2f scale = sf::Vector2f(1.f, 1.f));
 	void newRoundRectangle(sf::Vector2f position, sf::Vector2f size, int radius = 10, sf::Color color = sf::Color::White);
 	void newCircleShape(sf::Vector2f position, int radius, int corners, sf::Color color = sf::Color::White, int rotation = 0);
+	void newCheckBox(sf::Vector2f position, sf::Vector2f size, int sideDistance);
 
 	void updateSetup();
 	void updateFade();

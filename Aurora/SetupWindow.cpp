@@ -1,30 +1,23 @@
 #include "SetupWindow.h"
-#include <SFML/Graphics.hpp>
 #include "RoundedRectangleShape.hpp"
-#include <iostream>
 #include "enumser.h"
 #include "pictures.hpp"
 #include "fonts.hpp"
 #include <time.h>
 #include <math.h> 
 
-// sf::IntRect http://screenshot.su/show.php?img=171fc403d985f488692eaab6f951b083.jpg
 // maps http://screenshot.su/show.php?img=58b6785e0eec935566d6c986fbd6ab02.jpg
 
 using namespace std;
 
 namespace setupWin {
-	//A clickable rectangle struct
-	struct clickableArea {
-		sf::Vector2i topLeft, bottomRight;
-	};
 
 	//Stips
 	struct ledStrip {
 		sf::RoundedRectangleShape roundRect;
 		sf::Text voltageText, pinsText, addressableText;
 		sf::Sprite image;
-		clickableArea supportedStripsArea;
+		sf::IntRect supportedStripsArea;
 	};
 	vector<ledStrip> supportedStrips;
 	int selectedModel = -1;
@@ -35,7 +28,7 @@ namespace setupWin {
 		string namesCOM, portsCOM;
 		sf::Text namesCOMText, portsCOMText;
 		bool isArduino;
-		clickableArea activeCOMPortsArea;
+		sf::IntRect activeCOMPortsArea;
 	};
 	vector<comButton> activeCOMPorts;
 	int selectedCOM = -1;
@@ -90,12 +83,20 @@ namespace setupWin {
 	//Rounded rectangles
 	struct roundRectangle {
 		sf::RoundedRectangleShape roundedRectangle;
-		clickableArea roundButtonArea;
+		sf::IntRect roundButtonArea;
 	};
 	vector<roundRectangle> roundedRectangles;
 
 	//CircleShapes
 	vector<sf::CircleShape> circleShapes;
+
+	//Checkboxes
+	struct checkBox {
+		sf::RectangleShape checkBoxFrame, checkBoxFill;
+		sf::IntRect checkBoxArea;
+		bool isChecked = false;
+	};
+	vector<checkBox> checkBoxes;
 
 	//Setup variables
 	int setupProgress = 0;
@@ -118,11 +119,11 @@ void SetupWindow::updateWindow(sf::RenderWindow& window, sf::Vector2i mousePos) 
 	if (setupProgress == 1 || setupProgress == 2 || setupProgress == 4)
 		highlightRoundbox(mousePos);
 
-	for (int i = 5; i < loadedSprites.size(); i++) {
+	for (int i = 6; i < loadedSprites.size(); i++) {
 		window.draw(loadedSprites[i]);
 	}
  	for (int i = 0; i < textLabels.size(); i++) {
- 		if (!(i >= 2 && i <= 9))
+ 		if (!(i >= 2 && i <= 11))
  			window.draw(textLabels[i]);
  	}
 	for (int i = 0; i < roundedRectangles.size(); i++) {
@@ -141,8 +142,7 @@ void SetupWindow::updateWindow(sf::RenderWindow& window, sf::Vector2i mousePos) 
 		}
 		window.draw(loadedSprites[0]);
 		window.draw(loadedSprites[1]);
-	}
-	else if (setupProgress == 1) {
+	} else if (setupProgress == 1) {
 		for (int i = 0; i < supportedStrips.size(); i++) {
 			window.draw(supportedStrips[i].roundRect);
 			window.draw(supportedStrips[i].voltageText);
@@ -150,8 +150,7 @@ void SetupWindow::updateWindow(sf::RenderWindow& window, sf::Vector2i mousePos) 
 			window.draw(supportedStrips[i].addressableText);
 			window.draw(supportedStrips[i].image);
 		}
-	}
-	else if (setupProgress == 2) {
+	} else if (setupProgress == 2) {
 		for (int i = 0; i < activeCOMPorts.size(); i++) {
 			if (activeCOMPorts[i].isArduino) {
 				loadedSprites[2].setPosition(sf::Vector2f(105 + 199 * i, 200));
@@ -191,8 +190,7 @@ void SetupWindow::updateWindow(sf::RenderWindow& window, sf::Vector2i mousePos) 
 		}
 		window.draw(roundedRectangles[2].roundedRectangle);
 		window.draw(textLabels[2]);
-	}
-	else if (setupProgress == 3) {
+	} else if (setupProgress == 3) {
 		textLabels[4].setFillColor(sf::Color(255, 255, 255, 255));
 		loadedSprites[3].setColor(sf::Color(255, 255, 255, 255));
 
@@ -225,8 +223,7 @@ void SetupWindow::updateWindow(sf::RenderWindow& window, sf::Vector2i mousePos) 
 		window.draw(loadedSprites[3]);
 		loadedSprites[3].setPosition(230, 276);
 		window.draw(loadedSprites[3]);
-	}
-	else if (setupProgress == 4) {
+	} else if (setupProgress == 4) {
 		for (int i = 3; i < 7; i++) {
 			window.draw(roundedRectangles[i].roundedRectangle);
 		}
@@ -235,6 +232,16 @@ void SetupWindow::updateWindow(sf::RenderWindow& window, sf::Vector2i mousePos) 
 		}
 		if (selectedModel != -1)
 			window.draw(loadedSprites[4]);
+	} else if (setupProgress == 5) {
+		for (int i = 0; i < checkBoxes.size(); i++) {
+			for (int i = 10; i < 12; i++) {
+				window.draw(textLabels[i]);
+			}
+			window.draw(loadedSprites[5]);
+			window.draw(checkBoxes[i].checkBoxFrame);
+			if (checkBoxes[i].isChecked)
+				window.draw(checkBoxes[i].checkBoxFill);
+		}
 	}
 
 	if (doFade)
@@ -243,10 +250,9 @@ void SetupWindow::updateWindow(sf::RenderWindow& window, sf::Vector2i mousePos) 
 		window.draw(fadeRectangle);
 }
 void SetupWindow::mouseClicked(sf::Vector2i mousePos, int buttonClicked) {
-
 	if (buttonClicked == 1) {
 		for (int i = 0; i < roundedRectangles.size(); i++) {
-			if (mousePos.x >= roundedRectangles[i].roundButtonArea.topLeft.x && mousePos.x <= roundedRectangles[i].roundButtonArea.bottomRight.x && mousePos.y >= roundedRectangles[i].roundButtonArea.topLeft.y && mousePos.y <= roundedRectangles[i].roundButtonArea.bottomRight.y) {
+			if (roundedRectangles[i].roundButtonArea.contains(mousePos)) {
 				if (i == 0) {
 					if (setupProgress != 0 && !(doFade && fadeDir)) {
 						if (doFade) {
@@ -302,23 +308,21 @@ void SetupWindow::mouseClicked(sf::Vector2i mousePos, int buttonClicked) {
 		}
 		if (setupProgress == 1) {
 			for (int i = 0; i < supportedStrips.size(); i++) {
-				if (mousePos.x >= supportedStrips[i].supportedStripsArea.topLeft.x && mousePos.x <= supportedStrips[i].supportedStripsArea.bottomRight.x && mousePos.y >= supportedStrips[i].supportedStripsArea.topLeft.y && mousePos.y <= supportedStrips[i].supportedStripsArea.bottomRight.y) {
+				if (supportedStrips[i].supportedStripsArea.contains(mousePos)) {
 					selectedModel = i;
 					supportedStrips[i].roundRect.setOutlineColor(sf::Color(19, 161, 237, 220));
 					return;
 				}
 			}
-		}
-		else if (setupProgress == 2) {
+		} else if (setupProgress == 2) {
 			for (int i = 0; i < activeCOMPorts.size(); i++) {
-				if (mousePos.x >= activeCOMPorts[i].activeCOMPortsArea.topLeft.x && mousePos.x <= activeCOMPorts[i].activeCOMPortsArea.bottomRight.x && mousePos.y >= activeCOMPorts[i].activeCOMPortsArea.topLeft.y && mousePos.y <= activeCOMPorts[i].activeCOMPortsArea.bottomRight.y) {
+				if (activeCOMPorts[i].activeCOMPortsArea.contains(mousePos)) {
 					selectedCOM = i;
 					activeCOMPorts[i].roundRect.setOutlineColor(sf::Color(19, 161, 237, 220));
 					return;
 				}
 			}
-		}
-		else if (setupProgress == 3) {
+		} else if (setupProgress == 3) {
 			if (mousePos.x >= 116 && mousePos.x <= 126 && mousePos.y >= 196 && mousePos.y <= 215) {
 				selectedRate--;
 				if (selectedRate < 0)
@@ -363,11 +367,17 @@ void SetupWindow::mouseClicked(sf::Vector2i mousePos, int buttonClicked) {
 					return;
 				}
 			}
-		}
-		else if (setupProgress == 4) {
+		} else if (setupProgress == 4) {
 			if (mousePos.x >= 639 && mousePos.x <= 639 + textLabels[9].getGlobalBounds().width && mousePos.y >= 247 && mousePos.y <= 249 + textLabels[9].getGlobalBounds().height) {
 				ShellExecute(0, 0, "https://www.arduino.cc/en/Main/Software", 0, 0, SW_SHOW);
 				return;
+			}
+		} else if (setupProgress == 5) {
+			for (int i = 0; i < checkBoxes.size(); i++){
+				if (checkBoxes[i].checkBoxArea.contains(mousePos)) {
+					checkBoxes[i].isChecked = !checkBoxes[i].isChecked;
+					return;
+				}
 			}
 		}
 	}
@@ -389,11 +399,9 @@ void SetupWindow::initializeSetup() {
 	//Fonts
 	newFont((void*)ComfortaaLight, ComfortaaLight_Size, "comfortaa");
 
-	//Textlabels
+	//Text labels
 	newText(10, 7, "Aurora - Setup: Introduction", "comfortaa", 30);
-	newText(10, 45, "Greetings! I will guide you through how to properly set up Aurora. If this is your first time using the program, \nplease read the contents of this walkthrough carefully."\
-		"You can re-run the setup-process by *insert feature \nto repeat setup here*. Use the arrows below in order to maneuver your way through the different options."\
-		"\n\nIf you are unsure about which settings to opt for, or you believe that something is missing or not working as \nintended, don't hesitate to contact me. *Insert methods of contacting me here*", "comfortaa", 18);
+	newText(10, 45, "*Setup text*", "comfortaa", 18);
 	newText(463, 349, "Refresh", "comfortaa", 26);
 	newText(10, 195, "Baud-rate:     9600", "comfortaa", 18);
 	newText(10, 265, "LED amount:          1", "comfortaa", 18);
@@ -402,6 +410,8 @@ void SetupWindow::initializeSetup() {
 	newText(522, 349, "Push to Arduino", "comfortaa", 26);
 	newText(750, 349, "Save as .ino file", "comfortaa", 26);
 	newText(639, 245, "www.arduino.cc", "comfortaa", 18);
+	newText(10, 150, "Launch Aurora at the same time as Windows", "comfortaa", 18);
+	newText(10, 180, "Turn off LEDs when Aurora quits", "comfortaa", 18);
 	textLabels[2].setOrigin(textLabels[2].getGlobalBounds().width / 2, 16);
 	textLabels[2].move(textLabels[2].getGlobalBounds().width / 2, 16);
 
@@ -413,6 +423,7 @@ void SetupWindow::initializeSetup() {
 	newTexture((void*)StripDIN5V, StripDIN5V_Size, "stripdin5v");
 	newTexture((void*)StripRGB12V, StripRGB12V_Size, "striprgb12v");
 	newTexture((void*)baudArrow, baudArrow_Size, "baudarrow");
+	newTexture((void*)AuroraLogo40, AuroraLogo40_Size, "auroralogo40");
 	newTexture((void*)StripIltrof, StripIltrof_Size, "stripiltrof");
 
 	//Sprites
@@ -421,8 +432,10 @@ void SetupWindow::initializeSetup() {
 	newSprite(sf::Vector2f(-300, -300), "arduinologo");
 	newSprite(sf::Vector2f(120, 206), "baudarrow");
 	newSprite(sf::Vector2f(125, 333), "stripdin5v");
-	for (int i = 0; i < 4; i++) {
+	newSprite(sf::Vector2f(989, 365), "auroralogo40");
+	for (int i = 0; i < 6; i++) {
 		loadedSprites[i].setOrigin(loadedSprites[i].getGlobalBounds().width / 2, loadedSprites[i].getGlobalBounds().height / 2);}
+	
 
 	//Strips
 	addStrip(5, "DIN, +5V & GND", "stripdin5v", true);
@@ -441,6 +454,10 @@ void SetupWindow::initializeSetup() {
 	newRoundRectangle(sf::Vector2f(200, 332), sf::Vector2f(264, 115), 10, sf::Color(120, 120, 120, 180));
 	newRoundRectangle(sf::Vector2f(620, 365), sf::Vector2f(220, 50), 10, sf::Color(25, 151, 156, 220));
 	newRoundRectangle(sf::Vector2f(847, 365), sf::Vector2f(220, 50), 10, sf::Color(24, 115, 171, 180));
+
+	//Checkboxes
+	newCheckBox(sf::Vector2f(450, 161), sf::Vector2f(20, 20), 1);
+	newCheckBox(sf::Vector2f(450, 191), sf::Vector2f(20, 20), 1);
 
 	//Transition fade
 	transitionFade(sf::Vector2f(1024, 400), 600);
@@ -463,15 +480,20 @@ void SetupWindow::updateSetup() {
 	if (setupProgress != 0) {
 		roundedRectangles[0].roundedRectangle.setOutlineColor(evilColors[c]);
 		circleShapes[0].setFillColor(evilColors[c]);
-	}
-	else if (setupProgress == 0) {
+	} else {
 		sf::Color color = sf::Color(60, 60, 60, 200);
 		roundedRectangles[0].roundedRectangle.setOutlineColor(color);
 		circleShapes[0].setFillColor(color);
 	}
 
-	roundedRectangles[1].roundedRectangle.setOutlineColor(goodColors[c]);
-	circleShapes[1].setFillColor(goodColors[c]);
+	if (setupProgress != 5) {
+		roundedRectangles[1].roundedRectangle.setOutlineColor(goodColors[c]);
+		circleShapes[1].setFillColor(goodColors[c]);
+	} else {
+		roundedRectangles[1].roundedRectangle.setOutlineColor(sf::Color(34, 95, 102, 200));
+		circleShapes[1].setFillColor(sf::Color(0, 0, 0, 0));
+	}
+	
 
 	switch (setupProgress) {
 	case 0:
@@ -540,7 +562,9 @@ void SetupWindow::updateSetup() {
 
 	case 5:
 		textLabels[0].setString("Aurora - Setup: Miscellaneous");
-		textLabels[1].setString("");
+		textLabels[1].setString("For the final round of settings, Aurora needs to ask you for a few permissions. You can allow Aurora to \nautomatically open alongside Windows, which will launch Aurora in the application tray when you turn on \nyour computer. You can also"\
+			" make the lights on your LED strip turn off if you quit Aurora. This will attempt \nto turn your LEDs off upon your machine turning off.\n\n\n\n\n\n\nWhen you are satisfied with the settings, click the Aurora logo to the right to launch the color control."\
+			" \nThis will be your main window from now on, but remember than you can always go back into this setup \nvia the tray icon window located on your taskbar. Good luck!");
 		break;
 
 	default:
@@ -592,7 +616,7 @@ void SetupWindow::highlightRoundbox(sf::Vector2i mousePos) {
 		for (int i = 0; i < supportedStrips.size(); i++) {
 			if (i != selectedModel)
 				supportedStrips[i].roundRect.setOutlineColor(sf::Color(120, 120, 120, 180));
-			if (mousePos.x >= supportedStrips[i].supportedStripsArea.topLeft.x && mousePos.x <= supportedStrips[i].supportedStripsArea.bottomRight.x && mousePos.y >= supportedStrips[i].supportedStripsArea.topLeft.y && mousePos.y <= supportedStrips[i].supportedStripsArea.bottomRight.y)
+			if (supportedStrips[i].supportedStripsArea.contains(mousePos))
 				supportedStrips[i].roundRect.setOutlineColor(sf::Color(242, 242, 242, 210));
 		}
 		if (selectedModel >= 0)
@@ -604,7 +628,7 @@ void SetupWindow::highlightRoundbox(sf::Vector2i mousePos) {
 				activeCOMPorts[i].roundRect.setOutlineColor(sf::Color(120, 120, 120, 180));
 				if (activeCOMPorts[i].isArduino)
 					activeCOMPorts[i].roundRect.setOutlineColor(sf::Color(25, 151, 156, 220));
-				if (mousePos.x >= activeCOMPorts[i].activeCOMPortsArea.topLeft.x && mousePos.x <= activeCOMPorts[i].activeCOMPortsArea.bottomRight.x && mousePos.y >= activeCOMPorts[i].activeCOMPortsArea.topLeft.y && mousePos.y <= activeCOMPorts[i].activeCOMPortsArea.bottomRight.y)
+				if (activeCOMPorts[i].activeCOMPortsArea.contains(mousePos))
 					activeCOMPorts[i].roundRect.setOutlineColor(sf::Color(242, 242, 242, 210));
 			}
 		}
@@ -614,7 +638,7 @@ void SetupWindow::highlightRoundbox(sf::Vector2i mousePos) {
 	else if (setupProgress == 4) {
 		roundedRectangles[3].roundedRectangle.setOutlineColor(sf::Color(145, 43, 179, 200));
 		textLabels[9].setFillColor(sf::Color(35, 171, 176, 255));
-		if (mousePos.x >= roundedRectangles[3].roundButtonArea.topLeft.x && mousePos.x <= roundedRectangles[3].roundButtonArea.bottomRight.x && mousePos.y >= roundedRectangles[3].roundButtonArea.topLeft.y && mousePos.y <= roundedRectangles[3].roundButtonArea.bottomRight.y)
+		if (roundedRectangles[3].roundButtonArea.contains(mousePos))
 			roundedRectangles[3].roundedRectangle.setOutlineColor(sf::Color(197, 90, 232, 210));
 		if (mousePos.x >= 639 && mousePos.x <= 639 + textLabels[9].getGlobalBounds().width && mousePos.y >= 247 && mousePos.y <= 249 + textLabels[9].getGlobalBounds().height)
 			textLabels[9].setFillColor(sf::Color(69, 231, 237, 255));
@@ -692,9 +716,7 @@ void SetupWindow::getActiveCOM() {
 			else
 				b.isArduino = false;
 
-			b.activeCOMPortsArea = {
-				sf::Vector2i((10 + 199 * activeCOMPorts.size()), 135), sf::Vector2i((200 + 199 * activeCOMPorts.size()), 331)
-			};
+			b.activeCOMPortsArea = sf::IntRect(10 + 199 * activeCOMPorts.size(), 135, 190, 196);
 
 			activeCOMPorts.push_back(b);
 		}
@@ -755,7 +777,6 @@ void SetupWindow::newSprite(sf::Vector2f position, string texture, sf::Vector2f 
 	loadedSprites.push_back(sprite);
 }
 void SetupWindow::newRoundRectangle(sf::Vector2f position, sf::Vector2f size, int radius, sf::Color color) {
-
 	roundRectangle r;
 
 	r.roundedRectangle = sf::RoundedRectangleShape(size, radius, 10);
@@ -768,9 +789,7 @@ void SetupWindow::newRoundRectangle(sf::Vector2f position, sf::Vector2f size, in
 	int w = r.roundedRectangle.getGlobalBounds().width / 2;
 	int h = r.roundedRectangle.getGlobalBounds().height / 2;
 
-	r.roundButtonArea = {
-		sf::Vector2i(position.x - w, position.y - h), sf::Vector2i(position.x - w + size.x, position.y - h + size.y)
-	};
+	r.roundButtonArea = sf::IntRect(position.x - w, position.y - h, size.x, size.y);
 
 	roundedRectangles.push_back(r);
 }
@@ -783,6 +802,29 @@ void SetupWindow::newCircleShape(sf::Vector2f position, int radius, int corners,
 	c.setPosition(position);
 
 	circleShapes.push_back(c);
+}
+void SetupWindow::newCheckBox(sf::Vector2f position, sf::Vector2f size, int sideDistance){
+	checkBox c;
+
+	c.checkBoxFrame.setSize(size);
+	c.checkBoxFrame.setOrigin(c.checkBoxFrame.getGlobalBounds().width / 2, c.checkBoxFrame.getGlobalBounds().height / 2);
+	c.checkBoxFrame.setPosition(position);
+	c.checkBoxFrame.setFillColor(sf::Color::Transparent);
+	c.checkBoxFrame.setOutlineColor(sf::Color::White);
+	c.checkBoxFrame.setOutlineThickness(-1);
+
+	c.checkBoxFill.setSize(sf::Vector2f(size.x - sideDistance - 4, size.y - sideDistance - 4));
+	c.checkBoxFill.setOrigin(c.checkBoxFill.getGlobalBounds().width / 2, c.checkBoxFill.getGlobalBounds().height / 2);
+	c.checkBoxFill.setPosition(position);
+	c.checkBoxFill.setFillColor(sf::Color::White);
+
+	int w = c.checkBoxFrame.getGlobalBounds().width / 2;
+	int h = c.checkBoxFrame.getGlobalBounds().height / 2;
+
+	c.checkBoxArea = sf::IntRect(position.x - w, position.y - h, size.x, size.y);
+	c.isChecked = false;
+
+	checkBoxes.push_back(c);
 }
 
 void SetupWindow::transitionFade(sf::Vector2f size, int duration) {
@@ -841,9 +883,7 @@ void SetupWindow::addStrip(int voltage, string pins, string textureLabel, bool a
 	s.image.setOrigin(sf::Vector2f(s.image.getGlobalBounds().width / 2, s.image.getGlobalBounds().height / 2));
 	s.image.setPosition(sf::Vector2f(80 + 149 * supportedStrips.size(), 200));
 
-	s.supportedStripsArea = {
-		sf::Vector2i((10 + 149 * supportedStrips.size()), 135), sf::Vector2i(140 + (10 + 149 * supportedStrips.size()), 331)
-	};
+	s.supportedStripsArea = sf::IntRect(10 + 149 * supportedStrips.size(), 135, 140, 196);
 
 	supportedStrips.push_back(s);
 }

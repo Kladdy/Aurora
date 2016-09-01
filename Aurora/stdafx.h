@@ -3,6 +3,9 @@
 //      are changed infrequently
 //
 
+#include <SFML/Graphics.hpp>
+#include <iostream>
+
 #if !defined(AFX_STDAFX_H__A9DB83DB_A9FD_11D0_BFD1_444553540000__INCLUDED_)
 #define AFX_STDAFX_H__A9DB83DB_A9FD_11D0_BFD1_444553540000__INCLUDED_
 
