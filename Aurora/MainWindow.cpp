@@ -6,31 +6,48 @@
 using namespace std;
 
 namespace mainWin {
+	struct LightningModeButton
+	{
+		void update()
+		{
+			if(destinationY != currentPosition.y)
+			{
+				currentPosition.y += (destinationY - currentPosition.y) / 6.f; //tweak this for different transition speed
+				if(abs(destinationY - currentPosition.y) < 1)
+					currentPosition.y = destinationY;
+			}
 
-	//Ligtning modes
-	vector<sf::Sprite> lightningModes;
-	vector<string> modeNames;
-	int slideDistance = 0;
-	int hoveredMode = -1;
-	int lastHovered = -1;
-	bool retract = false;
+			sprite.setPosition(currentPosition);
+
+			if(hovered)
+				textOpacity = min(textOpacity+10, 255); //tweak this for the text to appear quicker
+			else
+				textOpacity = max(textOpacity-10, 0); //and this for it to disappear quicker
+		}
+
+		sf::FloatRect getRect() { return sprite.getGlobalBounds(); }
+
+		bool hovered = false;
+		float destinationY;
+		sf::Uint8 textOpacity = 0;
+		std::string name;
+
+		sf::Vector2f startPosition;
+		sf::Vector2f currentPosition;
+		sf::Sprite sprite;
+	};
+
+	std::vector<LightningModeButton> lightningModes;
+	int hoveredMode = 0;
 
 	//Fonts
-	struct font {
-		sf::Font textFont;
-		string fontLabel;
-	};
-	vector<font> textFonts;
+	std::map<std::string, sf::Font> textFonts;
 
 	//Text labels
 	vector<sf::Text> textLabels;
 
 	//Textures
-	struct texture {
-		sf::Texture loadedTexture;
-		string textureLabel;
-	};
-	vector<texture> loadedTextures;
+	std::map<std::string, sf::Texture> loadedTextures;
 	sf::Texture t;
 
 	//Sprites
@@ -56,7 +73,7 @@ void MainWindow::updateWindow(sf::RenderWindow& window, sf::Vector2i mousePos) {
 	if (runMain)
 		initializeMain();
 
-	updateHighlight(mousePos);
+	updateButtons(mousePos);
 
 	for (int i = 1; i < loadedSprites.size(); i++) {
 		window.draw(loadedSprites[i]);
@@ -71,8 +88,8 @@ void MainWindow::updateWindow(sf::RenderWindow& window, sf::Vector2i mousePos) {
 		window.draw(circleShapes[i]);
 	}
 	for (int i = 0; i < lightningModes.size(); i++) {
-		window.draw(lightningModes[i]);
-		if(hoveredMode != -1)
+		window.draw(lightningModes[i].sprite);
+		if(hoveredMode == i)
 			window.draw(loadedSprites[0]);
 	}
 }
@@ -123,7 +140,7 @@ void MainWindow::newFont(const void* data, int sizeInBytes, string label) {
 		return;
 	}
 
-	textFonts.push_back({ font, label });
+	textFonts[label] = font;
 }
 void MainWindow::newText(sf::Vector2f position, string text, string font, int size, sf::Color color) {
 
@@ -132,7 +149,7 @@ void MainWindow::newText(sf::Vector2f position, string text, string font, int si
 	label.setString(text);
 	label.setCharacterSize(size);
 	label.setFillColor(color);
-	label.setFont(textFonts[getFont("comfortaa")].textFont);
+	label.setFont(textFonts["comfortaa"]);
 
 	textLabels.push_back(label);
 }
@@ -145,12 +162,12 @@ void MainWindow::newTexture(const void* data, int sizeInBytes, string label) {
 	}
 	texture.setSmooth(true);
 
-	loadedTextures.push_back({ texture, label });
+	loadedTextures[label] = texture;
 }
 void MainWindow::newSprite(sf::Vector2f position, string texture, sf::Vector2f scale) {
 
 	sf::Sprite sprite;
-	sprite.setTexture(loadedTextures[getTexture(texture)].loadedTexture);
+	sprite.setTexture(loadedTextures[texture]);
 	sprite.setScale(scale);
 	sprite.setPosition(position);
 
@@ -186,99 +203,55 @@ void MainWindow::newCircleShape(sf::Vector2f position, int radius, int corners, 
 
 void MainWindow::addMode(string texture, string name) {
 	
-	sf::Sprite s;
-	s.setTexture(loadedTextures[getTexture(texture)].loadedTexture);
+	sf::Sprite s(loadedTextures[texture]);
 	s.setPosition(10, 10 + 90 * lightningModes.size());
 
-	lightningModes.push_back(s);
-	modeNames.push_back(name);
+	LightningModeButton newButton;
+	newButton.startPosition = newButton.currentPosition = sf::Vector2f(10, 10 + 90 * lightningModes.size());
+	newButton.destinationY = newButton.startPosition.y;
+	newButton.name = name;
+	newButton.sprite = s;
+	lightningModes.push_back(newButton);
 }
-void MainWindow::updateHighlight(sf::Vector2i mousePos) {
+void MainWindow::updateButtons(sf::Vector2i mousePos) {
+	hoveredMode = lightningModes.size();
+	for(int i = 0; i<lightningModes.size(); i++)
+	{
+		lightningModes[i].update();
+		sf::FloatRect hoverArea = lightningModes[i].getRect();
 
-	if (!retract) {
-		for (int i = 0; i < lightningModes.size(); i++) {
-			int dx = mousePos.x - lightningModes[i].getPosition().x - 40;
-			int dy = mousePos.y - lightningModes[i].getPosition().y - 40;
-			int distance = sqrt(pow(dx, 2) + pow(dy, 2));
-			if (distance <= 41) {
-				hoveredMode = i;
-				lastHovered = i;
-				loadedSprites[0].setPosition(10, lightningModes[i].getPosition().y);
-				textLabels[0].setString(modeNames[hoveredMode]);
-				textLabels[0].setOrigin((int)(textLabels[0].getGlobalBounds().width / 2), 0);
-				textLabels[0].setPosition(50, 100 + 90 * i);
-				if (hoveredMode == 1)
-					textLabels[0].setPosition(52, 100 + 90 * i);
-				break;
-			}
-			if (i == lightningModes.size() - 1) {
-				hoveredMode = -1;
-				retract = true;
-				break;
-			}
-		}
-		if (!retract) {
-			if (lightningModes[hoveredMode + 1].getPosition().y - 90 == lightningModes[hoveredMode + 2].getPosition().y) {
-				retract = true;
-				return;
-			}
+		if(i < lightningModes.size()-1)
+			hoverArea.height = lightningModes[i+1].getRect().top - hoverArea.top;
+		else
+			hoverArea.height = 90; //adjust this to change the hover area of the bottommost button
 
-			slideDistance += 3;
-			if (slideDistance > 40)
-				slideDistance = 40;
-			for (int i = hoveredMode + 1; i < lightningModes.size(); i++) {
-				lightningModes[i].setPosition(10, 10 + 90 * i + slideDistance);
-			}
+		if(hoverArea.contains(sf::Vector2f(mousePos)))
+		{
+			lightningModes[i].hovered = true;
+			loadedSprites[0].setPosition(lightningModes[i].currentPosition);
+			hoveredMode = i;
 		}
-		for (int i = 0; i < lightningModes.size(); i++) {
-			if (lightningModes[i].getPosition().y > 10 + 90 * i) {
-				lightningModes[i].setPosition(10, 10 + 90 * i + slideDistance);
-				if (i <= hoveredMode)
-					retract = true;
-			}
-		}
-
-		textLabels[0].setFillColor(sf::Color(255, 255, 255, (slideDistance / 40.f) * 255.f));
-		return;
-	} else {
-		slideDistance -= 3;
-		if (slideDistance < 0) {
-			slideDistance = 0;
-			retract = false;
-		}
-
-		for (int i = lastHovered + 1; i < lightningModes.size(); i++) {
-			lightningModes[i].setPosition(10, 10 + 90 * i + slideDistance);
-		}
-
-		textLabels[0].setFillColor(sf::Color(255, 255, 255, (slideDistance / 40.f) * 255.f));
-		return;
+		else
+			lightningModes[i].hovered = false;
 	}
 
-}
+	for(int i = 0; i<lightningModes.size(); i++)
+	{
+		if(i > hoveredMode)
+			lightningModes[i].destinationY = lightningModes[i].startPosition.y + 40;
+		else
+			lightningModes[i].destinationY = lightningModes[i].startPosition.y;
+	}
 
-int MainWindow::getFont(string font) {
-
-	for (int i = 0; i < textFonts.size(); i++) {
-		if (textFonts[i].fontLabel == font) {
-			return i;
-		}
-		else if (i == (textFonts.size() - 1)) {
-			cout << "A font with the label " + font + " has not been initialized" << endl;
-			return -1;
-		}
+	if(hoveredMode == lightningModes.size())
+		textLabels[0].setFillColor({ 0,0,0,0 });
+	else
+	{
+		textLabels[0].setString(lightningModes[hoveredMode].name);
+		textLabels[0].setOrigin((int)(textLabels[0].getGlobalBounds().width / 2), 0);
+		textLabels[0].setPosition(50, 100 + 90 * hoveredMode);
+		if(hoveredMode == 1)
+			textLabels[0].setPosition(52, 100 + 90 * hoveredMode);
+		textLabels[0].setFillColor({255,255,255, lightningModes[hoveredMode].textOpacity});
 	}
 }
-int MainWindow::getTexture(string texture) {
-
-	for (int i = 0; i < loadedTextures.size(); i++) {
-		if (loadedTextures[i].textureLabel == texture) {
-			return i;
-		}
-		else if (i == (loadedTextures.size() - 1)) {
-			cout << "A texture with the label " + texture + " has not been initialized" << endl;
-			return -1;
-		}
-	}
-}
-

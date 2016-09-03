@@ -27,7 +27,4 @@ private:
 
 	void transitionFade(sf::Vector2f size, int duration);
 	void addStrip(int voltage, string pins, string textureLabel, bool addressable);
-
-	int getFont(string font);
-	int getTexture(string texture);
 };

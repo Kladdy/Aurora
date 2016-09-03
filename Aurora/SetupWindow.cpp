@@ -61,21 +61,13 @@ namespace setupWin {
 	int rotation;
 
 	//Fonts
-	struct font {
-		sf::Font textFont;
-		string fontLabel;
-	};
-	vector<font> textFonts;
+	std::map<std::string, sf::Font> textFonts;
 
 	//Text labels
 	vector<sf::Text> textLabels;
 
 	//Textures
-	struct texture {
-		sf::Texture loadedTexture;
-		string textureLabel;
-	};
-	vector<texture> loadedTextures;
+	std::map<std::string, sf::Texture> loadedTextures;
 	sf::Texture t;
 
 	//Sprites
@@ -536,11 +528,11 @@ void SetupWindow::updateSetup() {
 			" that specific model. \n\n\n\n\nFortunately, Aurora can assist you in uploading a functional program to your Arduino. Confirm that the \nsettings below are correct and simply click the 'Push'-button to send the code to the Arduino. If you want to"\
 			" \nmanually change something in the code, you can save it as a .ino file on your computer. Please note that you \nneed to have the Arduino IDE installed, which you can download from ");
 		if (selectedModel == 0)
-			loadedSprites[4].setTexture(loadedTextures[getTexture("stripdin5v")].loadedTexture);
-		else if (selectedModel == 1)
-			loadedSprites[4].setTexture(loadedTextures[getTexture("striprgb12v")].loadedTexture);
-		else if (selectedModel == 2)
-			loadedSprites[4].setTexture(loadedTextures[getTexture("stripiltrof")].loadedTexture);
+			loadedSprites[4].setTexture(loadedTextures["stripdin5v"]);
+		else if(selectedModel == 1)
+			loadedSprites[4].setTexture(loadedTextures["striprgb12v"]);
+		else if(selectedModel == 2)
+			loadedSprites[4].setTexture(loadedTextures["stripiltrof"]);
 
 		textLabels[6].setString("");
 		if (selectedModel != -1)
@@ -695,7 +687,7 @@ void SetupWindow::getActiveCOM() {
 
 			b.namesCOMText.setString(s);
 			b.namesCOMText.setCharacterSize(18);
-			b.namesCOMText.setFont(textFonts[getFont("comfortaa")].textFont);
+			b.namesCOMText.setFont(textFonts["comfortaa"]);
 			if (b.namesCOMText.getGlobalBounds().width > 170) {
 				do {
 					b.namesCOMText.setCharacterSize(b.namesCOMText.getCharacterSize() - 1);
@@ -706,7 +698,7 @@ void SetupWindow::getActiveCOM() {
 
 			b.portsCOMText.setString(q);
 			b.portsCOMText.setCharacterSize(19);
-			b.portsCOMText.setFont(textFonts[getFont("comfortaa")].textFont);
+			b.portsCOMText.setFont(textFonts["comfortaa"]);
 			b.portsCOMText.setOrigin((int)(b.portsCOMText.getGlobalBounds().width / 2), 0);
 			b.portsCOMText.setPosition(sf::Vector2f(105 + 199 * activeCOMPorts.size(), 300));
 
@@ -743,7 +735,7 @@ void SetupWindow::newFont(const void* data, int sizeInBytes, string label) {
 		return;
 	}
 	
-	textFonts.push_back({ font, label });
+	textFonts[label] = font;
 }
 void SetupWindow::newText(int x, int y, string text, string font, int size, sf::Color color) {
 
@@ -752,7 +744,7 @@ void SetupWindow::newText(int x, int y, string text, string font, int size, sf::
 	label.setString(text);
 	label.setCharacterSize(size);
 	label.setFillColor(color);
-	label.setFont(textFonts[getFont("comfortaa")].textFont);
+	label.setFont(textFonts["comfortaa"]);
 
 	textLabels.push_back(label);
 }
@@ -765,12 +757,12 @@ void SetupWindow::newTexture(const void* data, int sizeInBytes, string label) {
 	}
 	texture.setSmooth(true);
 
-	loadedTextures.push_back({ texture, label });
+	loadedTextures[label] = texture;
 }
 void SetupWindow::newSprite(sf::Vector2f position, string texture, sf::Vector2f scale) {
 
 	sf::Sprite sprite;
-	sprite.setTexture(loadedTextures[getTexture(texture)].loadedTexture);
+	sprite.setTexture(loadedTextures[texture]);
 	sprite.setScale(scale);
 	sprite.setPosition(position);
 
@@ -851,13 +843,13 @@ void SetupWindow::addStrip(int voltage, string pins, string textureLabel, bool a
 
 	s.voltageText.setString("Voltage: +" + to_string(voltage) + "V");
 	s.voltageText.setCharacterSize(16);
-	s.voltageText.setFont(textFonts[getFont("comfortaa")].textFont);
+	s.voltageText.setFont(textFonts["comfortaa"]);
 	s.voltageText.setOrigin((int)(s.voltageText.getGlobalBounds().width / 2), 0);
 	s.voltageText.setPosition(sf::Vector2f(80 + 149 * supportedStrips.size(), 254));
 
 	s.pinsText.setString("Pins: " + pins);
 	s.pinsText.setCharacterSize(15);
-	s.pinsText.setFont(textFonts[getFont("comfortaa")].textFont);
+	s.pinsText.setFont(textFonts["comfortaa"]);
 	int posOffSet = 0;
 	if (s.pinsText.getGlobalBounds().width > 125) {
 		do {
@@ -869,7 +861,7 @@ void SetupWindow::addStrip(int voltage, string pins, string textureLabel, bool a
 	s.pinsText.setPosition(sf::Vector2f(80 + 149 * supportedStrips.size(), 279 + posOffSet));
 
 	s.addressableText.setCharacterSize(16);
-	s.addressableText.setFont(textFonts[getFont("comfortaa")].textFont);
+	s.addressableText.setFont(textFonts["comfortaa"]);
 	if (addressable)
 		s.addressableText.setString("Addressable");
 	else {
@@ -879,36 +871,11 @@ void SetupWindow::addStrip(int voltage, string pins, string textureLabel, bool a
 	s.addressableText.setOrigin((int)(s.addressableText.getGlobalBounds().width / 2), 0);
 	s.addressableText.setPosition(sf::Vector2f(80 + 149 * supportedStrips.size() - 1, 305 + !addressable));
 
-	s.image.setTexture(loadedTextures[getTexture(textureLabel)].loadedTexture);
+	s.image.setTexture(loadedTextures[textureLabel]);
 	s.image.setOrigin((int)(s.image.getGlobalBounds().width / 2), (int)(s.image.getGlobalBounds().height / 2));
 	s.image.setPosition(sf::Vector2f(80 + 149 * supportedStrips.size(), 200));
 
 	s.supportedStripsArea = sf::IntRect(10 + 149 * supportedStrips.size(), 135, 140, 196);
 
 	supportedStrips.push_back(s);
-}
-
-int SetupWindow::getFont(string font) {
-
-	for (int i = 0; i < textFonts.size(); i++) {
-		if (textFonts[i].fontLabel == font) {
-			return i;
-		}
-		else if (i == (textFonts.size() - 1)) {
-			cout << "A font with the label " + font + " has not been initialized" << endl;
-			return -1;
-		}
-	}
-}
-int SetupWindow::getTexture(string texture) {
-
-	for (int i = 0; i < loadedTextures.size(); i++) {
-		if (loadedTextures[i].textureLabel == texture) {
-			return i;
-		}
-		else if (i == (loadedTextures.size() - 1)) {
-			cout << "A texture with the label " + texture + " has not been initialized" << endl;
-			return -1;
-		}
-	}
 }

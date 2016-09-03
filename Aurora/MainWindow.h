@@ -21,8 +21,5 @@ private:
 	void newCircleShape(sf::Vector2f position, int radius, int corners, sf::Color color = sf::Color::White, int rotation = 0);
 
 	void addMode(string texture, string name);
-	void updateHighlight(sf::Vector2i mousePos);
-
-	int getFont(string font);
-	int getTexture(string texture);
+	void updateButtons(sf::Vector2i mousePos);
 };
