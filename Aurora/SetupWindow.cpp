@@ -7,6 +7,7 @@
 #include <math.h> 
 
 // maps http://screenshot.su/show.php?img=58b6785e0eec935566d6c986fbd6ab02.jpg
+// functional arduino-code functions
 
 using namespace std;
 
@@ -412,9 +413,8 @@ void SetupWindow::initializeSetup() {
 	newText(639, 245, "www.arduino.cc", "comfortaa", 18);
 	newText(10, 150, "Launch Aurora at the same time as Windows", "comfortaa", 18);
 	newText(10, 180, "Turn off LEDs when Aurora quits", "comfortaa", 18);
-	textLabels[2].setOrigin(textLabels[2].getGlobalBounds().width / 2, 16);
-	textLabels[2].move(textLabels[2].getGlobalBounds().width / 2, 16);
-
+	textLabels[2].setOrigin((int)(textLabels[2].getGlobalBounds().width / 2), 16);
+	textLabels[2].move((int)(textLabels[2].getGlobalBounds().width / 2), 16);
 
 	//Textures
 	newTexture((void*)AuroraLogo, AuroraLogo_Size, "auroralogo");
@@ -434,7 +434,7 @@ void SetupWindow::initializeSetup() {
 	newSprite(sf::Vector2f(125, 333), "stripdin5v");
 	newSprite(sf::Vector2f(989, 365), "auroralogo40");
 	for (int i = 0; i < 6; i++) {
-		loadedSprites[i].setOrigin(loadedSprites[i].getGlobalBounds().width / 2, loadedSprites[i].getGlobalBounds().height / 2);}
+		loadedSprites[i].setOrigin((int)(loadedSprites[i].getGlobalBounds().width / 2), (int)(loadedSprites[i].getGlobalBounds().height / 2));}
 	
 
 	//Strips
@@ -701,13 +701,13 @@ void SetupWindow::getActiveCOM() {
 					b.namesCOMText.setCharacterSize(b.namesCOMText.getCharacterSize() - 1);
 				} while (b.namesCOMText.getGlobalBounds().width > 170);
 			}
-			b.namesCOMText.setOrigin(b.namesCOMText.getGlobalBounds().width / 2, 0);
+			b.namesCOMText.setOrigin((int)(b.namesCOMText.getGlobalBounds().width / 2), 0);
 			b.namesCOMText.setPosition(sf::Vector2f(105 + 199 * activeCOMPorts.size(), 279));
 
 			b.portsCOMText.setString(q);
 			b.portsCOMText.setCharacterSize(19);
 			b.portsCOMText.setFont(textFonts[getFont("comfortaa")].textFont);
-			b.portsCOMText.setOrigin(b.portsCOMText.getGlobalBounds().width / 2, 0);
+			b.portsCOMText.setOrigin((int)(b.portsCOMText.getGlobalBounds().width / 2), 0);
 			b.portsCOMText.setPosition(sf::Vector2f(105 + 199 * activeCOMPorts.size(), 300));
 
 			size_t found = s.find("Arduino");
@@ -781,7 +781,7 @@ void SetupWindow::newRoundRectangle(sf::Vector2f position, sf::Vector2f size, in
 
 	r.roundedRectangle = sf::RoundedRectangleShape(size, radius, 10);
 	r.roundedRectangle.setOutlineThickness(-3);
-	r.roundedRectangle.setOrigin(r.roundedRectangle.getGlobalBounds().width / 2, r.roundedRectangle.getGlobalBounds().height / 2);
+	r.roundedRectangle.setOrigin((int)(r.roundedRectangle.getGlobalBounds().width / 2), (int)(r.roundedRectangle.getGlobalBounds().height / 2));
 	r.roundedRectangle.setPosition(position);
 	r.roundedRectangle.setFillColor(sf::Color::Transparent);
 	r.roundedRectangle.setOutlineColor(color);
@@ -797,7 +797,7 @@ void SetupWindow::newCircleShape(sf::Vector2f position, int radius, int corners,
 
 	sf::CircleShape c(radius, corners);
 	c.setFillColor(color);
-	c.setOrigin(c.getGlobalBounds().width / 2, c.getGlobalBounds().height / 2);
+	c.setOrigin((int)(c.getGlobalBounds().width / 2), (int)(c.getGlobalBounds().height / 2));
 	c.rotate(rotation);
 	c.setPosition(position);
 
@@ -807,14 +807,14 @@ void SetupWindow::newCheckBox(sf::Vector2f position, sf::Vector2f size, int side
 	checkBox c;
 
 	c.checkBoxFrame.setSize(size);
-	c.checkBoxFrame.setOrigin(c.checkBoxFrame.getGlobalBounds().width / 2, c.checkBoxFrame.getGlobalBounds().height / 2);
+	c.checkBoxFrame.setOrigin((int)(c.checkBoxFrame.getGlobalBounds().width / 2), (int)(c.checkBoxFrame.getGlobalBounds().height / 2));
 	c.checkBoxFrame.setPosition(position);
 	c.checkBoxFrame.setFillColor(sf::Color::Transparent);
 	c.checkBoxFrame.setOutlineColor(sf::Color::White);
 	c.checkBoxFrame.setOutlineThickness(-1);
 
 	c.checkBoxFill.setSize(sf::Vector2f(size.x - sideDistance - 4, size.y - sideDistance - 4));
-	c.checkBoxFill.setOrigin(c.checkBoxFill.getGlobalBounds().width / 2, c.checkBoxFill.getGlobalBounds().height / 2);
+	c.checkBoxFill.setOrigin((int)(c.checkBoxFill.getGlobalBounds().width / 2), (int)(c.checkBoxFill.getGlobalBounds().height / 2));
 	c.checkBoxFill.setPosition(position);
 	c.checkBoxFill.setFillColor(sf::Color::White);
 
@@ -852,7 +852,7 @@ void SetupWindow::addStrip(int voltage, string pins, string textureLabel, bool a
 	s.voltageText.setString("Voltage: +" + to_string(voltage) + "V");
 	s.voltageText.setCharacterSize(16);
 	s.voltageText.setFont(textFonts[getFont("comfortaa")].textFont);
-	s.voltageText.setOrigin(s.voltageText.getGlobalBounds().width / 2, 0);
+	s.voltageText.setOrigin((int)(s.voltageText.getGlobalBounds().width / 2), 0);
 	s.voltageText.setPosition(sf::Vector2f(80 + 149 * supportedStrips.size(), 254));
 
 	s.pinsText.setString("Pins: " + pins);
@@ -865,7 +865,7 @@ void SetupWindow::addStrip(int voltage, string pins, string textureLabel, bool a
 			posOffSet++;
 		} while (s.pinsText.getGlobalBounds().width > 125);
 	}
-	s.pinsText.setOrigin(s.pinsText.getGlobalBounds().width / 2, 0);
+	s.pinsText.setOrigin((int)(s.pinsText.getGlobalBounds().width / 2), 0);
 	s.pinsText.setPosition(sf::Vector2f(80 + 149 * supportedStrips.size(), 279 + posOffSet));
 
 	s.addressableText.setCharacterSize(16);
@@ -876,11 +876,11 @@ void SetupWindow::addStrip(int voltage, string pins, string textureLabel, bool a
 		s.addressableText.setString("Non-addressable");
 		s.addressableText.setCharacterSize(15);
 	}
-	s.addressableText.setOrigin(s.addressableText.getGlobalBounds().width / 2, 0);
+	s.addressableText.setOrigin((int)(s.addressableText.getGlobalBounds().width / 2), 0);
 	s.addressableText.setPosition(sf::Vector2f(80 + 149 * supportedStrips.size() - 1, 305 + !addressable));
 
 	s.image.setTexture(loadedTextures[getTexture(textureLabel)].loadedTexture);
-	s.image.setOrigin(sf::Vector2f(s.image.getGlobalBounds().width / 2, s.image.getGlobalBounds().height / 2));
+	s.image.setOrigin((int)(s.image.getGlobalBounds().width / 2), (int)(s.image.getGlobalBounds().height / 2));
 	s.image.setPosition(sf::Vector2f(80 + 149 * supportedStrips.size(), 200));
 
 	s.supportedStripsArea = sf::IntRect(10 + 149 * supportedStrips.size(), 135, 140, 196);

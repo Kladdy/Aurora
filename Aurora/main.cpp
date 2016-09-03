@@ -31,11 +31,12 @@ sf::Clock closeTrayClock;
 sf::Clock limitClock;
 sf::Clock mainLimitClock;
 
- //Initialize user-interface library & the windows
+ //Initialize the windows
 SetupWindow SW;
 MainWindow MW;
 
 bool focusMain = false;
+bool focusSetup = false;
 
 struct Window {
 	sf::RenderWindow inst;
@@ -68,6 +69,31 @@ void TrayIcon1_OnMessage(CTrayIcon* pTrayIcon, UINT uMsg){
 		}
 	}
 }
+sf::Vector2i getTaskbarPos() {
+
+	APPBARDATA taskBar;
+	taskBar.cbSize = sizeof(taskBar);
+	SHAppBarMessage(ABM_GETTASKBARPOS, &taskBar);
+
+	bool leftRight = false;
+	if ((taskBar.rc.bottom - taskBar.rc.top) > (taskBar.rc.right - taskBar.rc.left)) {
+		leftRight = true;
+	}
+
+	if (taskBar.rc.left == 0 && leftRight) { //Taskbar is on the left
+		return sf::Vector2i(taskBar.rc.right + TRAYWINDOW_DISTANCE, taskBar.rc.bottom - TRAYWINDOW_DISTANCE - TRAYWINDOW_HEIGHT);
+	}
+	else if (taskBar.rc.left != 0 && leftRight) { //Taskbar is on the right
+		return sf::Vector2i(taskBar.rc.left - TRAYWINDOW_DISTANCE - TRAYWINDOW_WIDTH, taskBar.rc.bottom - TRAYWINDOW_DISTANCE - TRAYWINDOW_HEIGHT);
+	}
+	if (taskBar.rc.top == 0 && !leftRight) { //Taskbar is on the top
+		return sf::Vector2i(taskBar.rc.right - TRAYWINDOW_DISTANCE - TRAYWINDOW_WIDTH, taskBar.rc.bottom + TRAYWINDOW_DISTANCE);
+	}
+	else if (taskBar.rc.top != 0 && !leftRight) { //Taskbar is on the bottom
+		return sf::Vector2i(taskBar.rc.right - TRAYWINDOW_DISTANCE - TRAYWINDOW_WIDTH, taskBar.rc.top - TRAYWINDOW_DISTANCE - TRAYWINDOW_HEIGHT);
+	}
+	return sf::Vector2i(0, 0);
+}
 
 void AuroraMain(sf::RenderWindow* w) {
 	sf::RenderWindow& window = *w;
@@ -87,7 +113,6 @@ void AuroraMain(sf::RenderWindow* w) {
 
 	window.display();
 }
-
 void AuroraSetup(sf::RenderWindow* w) {
 	sf::RenderWindow& window = *w;
 	mousePos = sf::Mouse::getPosition(window);
@@ -106,19 +131,23 @@ void AuroraSetup(sf::RenderWindow* w) {
 
 	window.display();
 }
-
 void AuroraTray(sf::RenderWindow* w){
 
 	sf::RenderWindow& window = *w;
 	if (GetFocus() != window.getSystemHandle()){
 		if (GetFocus() == mainWindow.inst.getSystemHandle())
 			focusMain = true;
+		else if (GetFocus() == setupWindow.inst.getSystemHandle())
+			focusSetup = true;
 		SetWindowPos(window.getSystemHandle(),
 			HWND_NOTOPMOST, 0, 0, 0, 0,
 			SWP_HIDEWINDOW | SWP_NOMOVE | SWP_NOSIZE);
 		if (focusMain){
 			SetForegroundWindow(mainWindow.inst.getSystemHandle());
 			focusMain = false;
+		} else if (focusSetup) {
+			SetForegroundWindow(setupWindow.inst.getSystemHandle());
+			focusSetup = false;
 		}
 		closeTrayClock.restart();
 	}
@@ -127,38 +156,14 @@ void AuroraTray(sf::RenderWindow* w){
 		if (event.type == sf::Event::Closed)
 			window.close();
 		if (event.type == sf::Event::MouseButtonPressed && sf::Mouse::isButtonPressed(sf::Mouse::Left)){
-			setupWindow.inst.setVisible(true);
-			SetForegroundWindow(setupWindow.inst.getSystemHandle());
+			mainWindow.inst.setVisible(true);
+			SetForegroundWindow(mainWindow.inst.getSystemHandle());
 			focusMain = true;
 		}
 	}
 	window.clear(sf::Color::Black);
 	window.display();
 }
-
-sf::Vector2i getTaskbarPos(){
-
-	APPBARDATA taskBar;
-	taskBar.cbSize = sizeof(taskBar);
-	SHAppBarMessage(ABM_GETTASKBARPOS, &taskBar);
-
-	bool leftRight = false;
-	if ((taskBar.rc.bottom - taskBar.rc.top) > (taskBar.rc.right - taskBar.rc.left)){
-		leftRight = true;
-	}
-
-	if (taskBar.rc.left == 0 && leftRight){ //Taskbar is on the left
-		return sf::Vector2i(taskBar.rc.right + TRAYWINDOW_DISTANCE, taskBar.rc.bottom - TRAYWINDOW_DISTANCE - TRAYWINDOW_HEIGHT);}
-	else if (taskBar.rc.left != 0 && leftRight){ //Taskbar is on the right
-		return sf::Vector2i(taskBar.rc.left - TRAYWINDOW_DISTANCE - TRAYWINDOW_WIDTH, taskBar.rc.bottom - TRAYWINDOW_DISTANCE - TRAYWINDOW_HEIGHT);}
-	if (taskBar.rc.top == 0 && !leftRight){ //Taskbar is on the top
-		return sf::Vector2i(taskBar.rc.right - TRAYWINDOW_DISTANCE - TRAYWINDOW_WIDTH, taskBar.rc.bottom + TRAYWINDOW_DISTANCE);}
-	else if (taskBar.rc.top != 0 && !leftRight){ //Taskbar is on the bottom
-		return sf::Vector2i(taskBar.rc.right - TRAYWINDOW_DISTANCE - TRAYWINDOW_WIDTH, taskBar.rc.top - TRAYWINDOW_DISTANCE - TRAYWINDOW_HEIGHT);}
-	return sf::Vector2i(0, 0);
-}
-
-
 
 int main(){
 
@@ -203,9 +208,8 @@ int main(){
 			if (mainWindow.isVisible())
 				mainWindow.loop();
 
-			if (setupWindow.isVisible()) {
+			if (setupWindow.isVisible())
 				setupWindow.loop();
-			}
 
 			if (trayWindow.isVisible())
 				trayWindow.loop();
