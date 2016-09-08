@@ -6,7 +6,6 @@
 #include <time.h>
 #include <math.h> 
 
-// maps http://screenshot.su/show.php?img=58b6785e0eec935566d6c986fbd6ab02.jpg
 // functional arduino-code functions
 
 using namespace std;

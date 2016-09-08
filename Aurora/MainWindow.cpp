@@ -445,17 +445,21 @@ void MainWindow::updateRenderTextures(int lM) {
 
 	case 1:
 		textLabels[1].setString("Rainbow");
-		textLabels[2].setString("This mode will apply a ");
+		textLabels[2].setString("This mode will apply a rainbow-like lighting effect to your strip, making all LEDs on the strip shine \nin different colors, flowing in either one direction"\
+			" or the other. Changing the speed will make the \nwave go faster or slower respectively, and setting which way the wave goes should be done to \nbest fit your setup. If you have set"\
+			" a different LED-amount in the setup compared to what you \nactually have, the wave will be extended to only show a few different hues instead of the entire \nspectrum. If the amount was"\
+			" lower, the spectrum will be repeated multiple times to fill up the strip.");
 		break;
 
 	case 2:
 		textLabels[1].setString("Fade");
-		textLabels[2].setString("This mode will apply a ");
+		textLabels[2].setString("This mode will apply a fading effect to your strip, making it fade in and out repeatedly. You can \nset which colors you wish your strip to fade into, chosing between"\
+			" using a single color or cycling \neither between the entire RGB spectrum or a random color each wave. The speed of the fade \ncan also be set, making the transitions quicker.");
 		break;
 
 	case 3:
 		textLabels[1].setString("Cycle");
-		textLabels[2].setString("This mode will apply a ");
+		textLabels[2].setString("This mode will apply a lighting effect that will cycle through different colors. You can ");
 		break;
 
 	default:
