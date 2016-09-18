@@ -37,6 +37,7 @@ MainWindow MW;
 
 bool focusMain = false;
 bool focusSetup = false;
+int MoS = 0;
 
 struct Window {
 	sf::RenderWindow inst;
@@ -156,9 +157,15 @@ void AuroraTray(sf::RenderWindow* w){
 		if (event.type == sf::Event::Closed)
 			window.close();
 		if (event.type == sf::Event::MouseButtonPressed && sf::Mouse::isButtonPressed(sf::Mouse::Left)){
-			mainWindow.inst.setVisible(true);
-			SetForegroundWindow(mainWindow.inst.getSystemHandle());
-			focusMain = true;
+			if (MoS == 0) {
+				mainWindow.inst.setVisible(true);
+				SetForegroundWindow(mainWindow.inst.getSystemHandle());
+				focusMain = true;
+			} else if (MoS == 1) {
+				setupWindow.inst.setVisible(true);
+				SetForegroundWindow(setupWindow.inst.getSystemHandle());
+				focusSetup = true;
+			}
 		}
 	}
 	window.clear(sf::Color::Black);

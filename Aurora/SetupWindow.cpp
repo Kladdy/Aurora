@@ -99,6 +99,9 @@ namespace setupWin {
 	vector<sf::Color> goodColors;
 	vector<sf::Color> evilColors;
 	int lastColor = -1;
+
+	//IntRects
+	vector<sf::IntRect> mouseBox;
 }
 
 using namespace setupWin;
@@ -315,14 +318,14 @@ void SetupWindow::mouseClicked(sf::Vector2i mousePos, int buttonClicked) {
 				}
 			}
 		} else if (setupProgress == 3) {
-			if (mousePos.x >= 116 && mousePos.x <= 126 && mousePos.y >= 196 && mousePos.y <= 215) {
+			if (mouseBox[0].contains(mousePos)) {
 				selectedRate--;
 				if (selectedRate < 0)
 					selectedRate = 11;
 				textLabels[3].setString("Baud-rate:     " + to_string(baudRates[selectedRate]));
 				return;
 			}
-			else if (mousePos.x >= 189 && mousePos.x <= 199 && mousePos.y >= 196 && mousePos.y <= 215) {
+			else if (mouseBox[1].contains(mousePos)) {
 				selectedRate++;
 				if (selectedRate > 11)
 					selectedRate = 0;
@@ -330,28 +333,28 @@ void SetupWindow::mouseClicked(sf::Vector2i mousePos, int buttonClicked) {
 				return;
 			}
 			else if (selectedModel != -1 && supportedStrips[selectedModel].addressableText.getString() == "Addressable") {
-				if (mousePos.x >= 133 && mousePos.x <= 143 && mousePos.y >= 266 && mousePos.y <= 285) {
+				if (mouseBox[2].contains(mousePos)) {
 					amountLEDs--;
 					if (amountLEDs <= 0)
 						amountLEDs = 1;
 					textLabels[4].setString("LED amount:          " + to_string(amountLEDs));
 					return;
 				}
-				else if (mousePos.x >= 151 && mousePos.x <= 168 && mousePos.y >= 266 && mousePos.y <= 285) {
+				else if (mouseBox[3].contains(mousePos)) {
 					amountLEDs -= 5;
 					if (amountLEDs <= 0)
 						amountLEDs = 1;
 					textLabels[4].setString("LED amount:          " + to_string(amountLEDs));
 					return;
 				}
-				else if (mousePos.x >= 201 && mousePos.x <= 218 && mousePos.y >= 266 && mousePos.y <= 285) {
+				else if (mouseBox[4].contains(mousePos)) {
 					amountLEDs += 5;
 					if (amountLEDs >= 100)
 						amountLEDs = 99;
 					textLabels[4].setString("LED amount:          " + to_string(amountLEDs));
 					return;
 				}
-				else if (mousePos.x >= 226 && mousePos.x <= 236 && mousePos.y >= 266 && mousePos.y <= 285) {
+				else if (mouseBox[5].contains(mousePos)) {
 					amountLEDs++;
 					if (amountLEDs >= 100)
 						amountLEDs = 99;
@@ -360,7 +363,7 @@ void SetupWindow::mouseClicked(sf::Vector2i mousePos, int buttonClicked) {
 				}
 			}
 		} else if (setupProgress == 4) {
-			if (mousePos.x >= 639 && mousePos.x <= 639 + textLabels[9].getGlobalBounds().width && mousePos.y >= 247 && mousePos.y <= 249 + textLabels[9].getGlobalBounds().height) {
+			if (mouseBox[6].contains(mousePos)) {
 				ShellExecute(0, 0, "https://www.arduino.cc/en/Main/Software", 0, 0, SW_SHOW);
 				return;
 			}
@@ -453,6 +456,15 @@ void SetupWindow::initializeSetup() {
 	//Transition fade
 	transitionFade(sf::Vector2f(1024, 400), 600);
 	
+	//IntRects
+	mouseBox.push_back(sf::IntRect(116, 196, 10, 19));
+	mouseBox.push_back(sf::IntRect(189, 196, 10, 19));
+	mouseBox.push_back(sf::IntRect(133, 266, 10, 19));
+	mouseBox.push_back(sf::IntRect(151, 266, 17, 19));
+	mouseBox.push_back(sf::IntRect(201, 266, 17, 19));
+	mouseBox.push_back(sf::IntRect(226, 266, 10, 19));
+	mouseBox.push_back(sf::IntRect(639, 247, 141, 17));
+
 	updateSetup();
 	runSetup = false;
 }
@@ -804,7 +816,7 @@ void SetupWindow::newCheckBox(sf::Vector2f position, sf::Vector2f size, int side
 	c.checkBoxFrame.setOutlineColor(sf::Color::White);
 	c.checkBoxFrame.setOutlineThickness(-1);
 
-	c.checkBoxFill.setSize(sf::Vector2f(size.x - sideDistance - 4, size.y - sideDistance - 4));
+	c.checkBoxFill.setSize(sf::Vector2f(size.x - sideDistance - 3, size.y - sideDistance - 3));
 	c.checkBoxFill.setOrigin((int)(c.checkBoxFill.getGlobalBounds().width / 2), (int)(c.checkBoxFill.getGlobalBounds().height / 2));
 	c.checkBoxFill.setPosition(position);
 	c.checkBoxFill.setFillColor(sf::Color::White);

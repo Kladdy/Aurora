@@ -7,8 +7,8 @@ using namespace std;
 
 namespace mainWin {
 	
-	//Lightning modes
-	struct LightningModeButton
+	//Lighting modes
+	struct LightingModeButton
 	{
 		void update()
 		{
@@ -38,8 +38,8 @@ namespace mainWin {
 		sf::Vector2f currentPosition;
 		sf::Sprite sprite;
 	};
-	vector<LightningModeButton> lightningModes;
-	sf::RenderTexture renderTextures[4];
+	vector<LightingModeButton> lightingModes;
+	sf::RenderTexture renderTextures[4]; //Increase if adding a new lighting mode
 	vector<sf::Vector2f> rTPosition;
 	int hoveredMode = 0;
 
@@ -70,13 +70,20 @@ namespace mainWin {
 	vector<sf::RectangleShape> rectangleShapes;
 
 	//Static color
-	sf::Color pickedColor = sf::Color::Red;
-	sf::Color previewColor = sf::Color::Red;
+	sf::Color pickedColor = sf::Color(0, 255, 255);
+	sf::Color previewColor = sf::Color(0, 255, 255);
 	sf::VertexArray hueBar(sf::Quads, 24);
 
+	//IntRects
+	vector<sf::IntRect> mouseBox;
+
 	bool runMain = true;
-	int lightningMode = -1;
+	int lightingMode = -1;
 	int textFade = 255;
+
+	//Rainbow settings
+	bool directionRainbow = false;
+	int speedRainbow = 1;
 
 }
 
@@ -89,11 +96,11 @@ void MainWindow::updateWindow(sf::RenderWindow& window, sf::Vector2i mousePos) {
 
 	updateButtons(mousePos);
 
-	for (int i = 1; i < loadedSprites.size(); i++) {
+	for (int i = 2; i < loadedSprites.size(); i++) {
 		window.draw(loadedSprites[i]);
 	}
 	for (int i = 0; i < textLabels.size(); i++) {
-		if (!(i >= 1 && i <= 2) && !(i >= 5 && i <= 5))
+		if (!(i >= 1 && i <= 2) && !(i >= 5 && i <= 9))
 			window.draw(textLabels[i]);
 	}
 	for (int i = 2; i < roundedRectangles.size(); i++) {
@@ -105,12 +112,12 @@ void MainWindow::updateWindow(sf::RenderWindow& window, sf::Vector2i mousePos) {
 // 	for (int i = 4; i < rectangleShapes.size(); i++) {
 // 		window.draw(rectangleShapes[i]);
 // 	}
-	for (int i = 0; i < lightningModes.size(); i++) {
-		window.draw(lightningModes[i].sprite);
+	for (int i = 0; i < lightingModes.size(); i++) {
+		window.draw(lightingModes[i].sprite);
 		if(hoveredMode == i)
 			window.draw(loadedSprites[0]);
 	}
-	if (lightningMode == 0 && sf::Mouse::isButtonPressed(sf::Mouse::Left) && sf::IntRect(204, 140, 120, 320).contains(mousePos)) {
+	if (lightingMode == 0 && sf::Mouse::isButtonPressed(sf::Mouse::Left) && sf::IntRect(204, 140, 120, 320).contains(mousePos)) {
 		if (mousePos.y >= 140 && mousePos.y <= 200)
 			pickedColor.r = 255;
 		else if (mousePos.y >= 200 && mousePos.y <= 250)
@@ -152,7 +159,7 @@ void MainWindow::updateWindow(sf::RenderWindow& window, sf::Vector2i mousePos) {
 		previewColor = pickedColor;
 	}
 
-	for (int i = 0; i < lightningModes.size(); i++) {
+	for (int i = 0; i < lightingModes.size(); i++) {
 		renderTextures[i].clear(sf::Color::Black);
 
 		updateRenderTextures(i);
@@ -163,14 +170,27 @@ void MainWindow::updateWindow(sf::RenderWindow& window, sf::Vector2i mousePos) {
 			rectangleShapes[0].setFillColor(pickedColor);
 			rectangleShapes[4].setFillColor(previewColor);
 			textLabels[5].setString("Red:     " + to_string(previewColor.r) + "\nGreen: " + to_string(previewColor.g) + "\nBlue:     " + to_string(previewColor.b));
-			renderTextures[i].draw(hueBar);
 			renderTextures[i].draw(textLabels[5]);
+			renderTextures[i].draw(hueBar);
 			for (int j = 0; j < 6; j++) {
 				renderTextures[i].draw(rectangleShapes[j]);
 			}
 			renderTextures[i].draw(roundedRectangles[0].roundedRectangle);
 			renderTextures[i].draw(roundedRectangles[1].roundedRectangle);
 		} else if (i == 1) { //Rainbow
+			for (int j = 6; j < 10; j++) {
+				renderTextures[i].draw(textLabels[j]);
+			}
+			loadedSprites[1].setPosition(111, 196);
+			renderTextures[i].draw(loadedSprites[1]);
+			loadedSprites[1].setPosition(111, 236);
+			renderTextures[i].draw(loadedSprites[1]);
+			loadedSprites[1].setRotation(180);
+			loadedSprites[1].setPosition(284, 226);
+			renderTextures[i].draw(loadedSprites[1]);
+			loadedSprites[1].setPosition(236, 266);
+			renderTextures[i].draw(loadedSprites[1]);
+			loadedSprites[1].setRotation(0);
 
 		} else if (i == 2) { //Fade
 
@@ -180,7 +200,7 @@ void MainWindow::updateWindow(sf::RenderWindow& window, sf::Vector2i mousePos) {
 
 		renderTextures[i].display();
 
-		if (lightningMode != -1) {
+		if (lightingMode != -1) {
 			sf::Sprite s;
 			s.setTexture(renderTextures[i].getTexture());
 
@@ -194,8 +214,8 @@ void MainWindow::updateWindow(sf::RenderWindow& window, sf::Vector2i mousePos) {
 			window.draw(s);
 		}	
 	}
-	if (lightningMode != -1 && textFade != 0) {
-		textFade -= (20 + 20 * lightningMode);
+	if (lightingMode != -1 && textFade != 0) {
+		textFade -= (20 + 20 * lightingMode);
 		if (textFade < 0)
 			textFade = 0;
 		textLabels[3].setFillColor(sf::Color(255, 255, 255, textFade));
@@ -209,14 +229,14 @@ void MainWindow::mouseClicked(sf::Vector2i mousePos, int buttonClicked) {
 				return;
 			}
 		}
-		if (hoveredMode != lightningModes.size()) {
-			lightningMode = hoveredMode;
-			for (int i = 0; i < lightningModes.size(); i++) {
-				rTPosition[i].y = (576 * (i - lightningMode));
+		if (hoveredMode != lightingModes.size()) {
+			lightingMode = hoveredMode;
+			for (int i = 0; i < lightingModes.size(); i++) {
+				rTPosition[i].y = (576 * (i - lightingMode));
 			}
 			return;
 		}
-		if (lightningMode == 0) {
+		if (lightingMode == 0) {
 			if (sf::IntRect(134, 150, 60, 300).contains(mousePos)) {
 				if (mousePos.y <= 250)
 					previewColor = pickedColor;
@@ -224,6 +244,31 @@ void MainWindow::mouseClicked(sf::Vector2i mousePos, int buttonClicked) {
 					previewColor = sf::Color::White;
 				else if (mousePos.y <= 450)
 					previewColor = sf::Color::Black;
+				return;
+			}
+		} else if (lightingMode == 1) {
+			if (mouseBox[0].contains(mousePos) || mouseBox[1].contains(mousePos)) {
+				directionRainbow = !directionRainbow;
+				if (directionRainbow) 
+					textLabels[8].setString("Upstream");
+				else
+					textLabels[8].setString("Downstream");
+				return;
+			} else if (mouseBox[2].contains(mousePos)) {
+				speedRainbow--;
+				if (speedRainbow <= -1)
+					speedRainbow = 2;
+				if(speedRainbow == 0) textLabels[9].setString("Slow");
+				else if (speedRainbow == 1) textLabels[9].setString("Normal");
+				else if (speedRainbow == 2) textLabels[9].setString("Fast");
+				return;
+			} else if (mouseBox[3].contains(mousePos)) {
+				speedRainbow++;
+				if (speedRainbow >= 3)
+					speedRainbow = 0;
+				if (speedRainbow == 0) textLabels[9].setString("Slow");
+				else if (speedRainbow == 1) textLabels[9].setString("Normal");
+				else if (speedRainbow == 2) textLabels[9].setString("Fast");
 				return;
 			}
 		}
@@ -246,6 +291,10 @@ void MainWindow::initializeMain() {
 		" additional parameters for \nyou to configure exactly how you want your strip to act. Once you're happy, push the lighting to \nyour Arduino, which in turn will make your RGB strip dazzle with colors."\
 		" If something goes wrong, \nmake sure that you completed the setup, accessable from the tray window.", "comfortaa", 18);
 	newText(sf::Vector2f(234, 260), "Red:\nGreen:\nBlue:", "comfortaa", 21);
+	newText(sf::Vector2f(29, 200), "Direction:", "comfortaa", 18);
+	newText(sf::Vector2f(29, 240), "Speed:", "comfortaa", 18);
+	newText(sf::Vector2f(140, 200), "Downstream", "comfortaa", 18);
+	newText(sf::Vector2f(140 , 240), "Normal", "comfortaa", 18);
 	textLabels[0].setOrigin((int)(textLabels[0].getGlobalBounds().width / 2), 0);
 
 	//Textures
@@ -254,11 +303,13 @@ void MainWindow::initializeMain() {
 	newTexture((void*)FadeIcon, FadeIcon_Size, "fadeicon");
 	newTexture((void*)CycleIcon, CycleIcon_Size, "cycleicon");
 	newTexture((void*)IconFrame, IconFrame_Size, "iconframe");
+	newTexture((void*)baudArrow, baudArrow_Size, "arrow");
 
 	//Sprites
 	newSprite(sf::Vector2f(10, 10), "iconframe");
+	newSprite(sf::Vector2f(111, 196), "arrow");
 	
-	//Lightning modes
+	//Lighting modes
 	addMode("staticicon", "Static");
 	addMode("rainbowicon", "Rainbow");
 	addMode("fadeicon", "Fade");
@@ -274,7 +325,7 @@ void MainWindow::initializeMain() {
 	newRectangle(sf::Vector2f(34, 350), sf::Vector2f(60, 100), sf::Color::Black);
 	newRectangle(sf::Vector2f(104, 150), sf::Vector2f(120, 300), sf::Color::Transparent, -2, sf::Color(145, 145, 145));
 	newRectangle(sf::Vector2f(234, 150), sf::Vector2f(100, 100), sf::Color::Red, -2, sf::Color(145, 145, 145));
-	newRectangle(sf::Vector2f(104, 152), sf::Vector2f(120, 4), sf::Color::Transparent, 2, sf::Color(100, 100, 100));
+	newRectangle(sf::Vector2f(104, 298), sf::Vector2f(120, 4), sf::Color::Transparent, 2, sf::Color(100, 100, 100));
 
 	//Huebar
 	for (int i = 0; i < 24; i++) {
@@ -293,6 +344,12 @@ void MainWindow::initializeMain() {
 		hueBar[i].position = pos;
 		hueBar[i].color = color;
 	}
+
+	//IntRects
+	mouseBox.push_back(sf::IntRect(221, 196, 10, 19));
+	mouseBox.push_back(sf::IntRect(364, 196, 10, 19));
+	mouseBox.push_back(sf::IntRect(221, 236, 10, 19));
+	mouseBox.push_back(sf::IntRect(316, 236, 10, 19));
 
 	runMain = false;
 }
@@ -380,58 +437,58 @@ void MainWindow::newRectangle(sf::Vector2f position, sf::Vector2f size, sf::Colo
 void MainWindow::addMode(string texture, string name) {
 	
 	sf::Sprite s(loadedTextures[texture]);
-	s.setPosition(10, 10 + 90 * lightningModes.size());
+	s.setPosition(10, 10 + 90 * lightingModes.size());
 
-	renderTextures[lightningModes.size()].create(924, 576);
+	renderTextures[lightingModes.size()].create(924, 576);
 
-	LightningModeButton newButton;
-	newButton.startPosition = newButton.currentPosition = sf::Vector2f(10, 10 + 90 * lightningModes.size());
+	LightingModeButton newButton;
+	newButton.startPosition = newButton.currentPosition = sf::Vector2f(10, 10 + 90 * lightingModes.size());
 	newButton.destinationY = newButton.startPosition.y;
 	newButton.name = name;
 	newButton.sprite = s;
-	rTPosition.push_back(sf::Vector2f(576 * (lightningModes.size() + 1), 576 * lightningModes.size()));
-	lightningModes.push_back(newButton);
+	rTPosition.push_back(sf::Vector2f(576 * (lightingModes.size() + 1), 576 * lightingModes.size()));
+	lightingModes.push_back(newButton);
 }
 void MainWindow::updateButtons(sf::Vector2i mousePos) {
-	hoveredMode = lightningModes.size();
-	for(int i = 0; i < lightningModes.size(); i++)
+	hoveredMode = lightingModes.size();
+	for(int i = 0; i < lightingModes.size(); i++)
 	{
-		lightningModes[i].update();
-		sf::FloatRect hoverArea = lightningModes[i].getRect();
+		lightingModes[i].update();
+		sf::FloatRect hoverArea = lightingModes[i].getRect();
 
-		if(i < lightningModes.size() - 1)
-			hoverArea.height = lightningModes[i+1].getRect().top - hoverArea.top;
+		if(i < lightingModes.size() - 1)
+			hoverArea.height = lightingModes[i+1].getRect().top - hoverArea.top;
 		else
 			hoverArea.height = 117; 
 
 		if(hoverArea.contains(sf::Vector2f(mousePos)))
 		{
-			lightningModes[i].hovered = true;
-			loadedSprites[0].setPosition(lightningModes[i].currentPosition);
+			lightingModes[i].hovered = true;
+			loadedSprites[0].setPosition(lightingModes[i].currentPosition);
 			hoveredMode = i;
 		}
 		else
-			lightningModes[i].hovered = false;
+			lightingModes[i].hovered = false;
 	}
 
-	for(int i = 0; i < lightningModes.size(); i++)
+	for(int i = 0; i < lightingModes.size(); i++)
 	{
 		if(i > hoveredMode)
-			lightningModes[i].destinationY = lightningModes[i].startPosition.y + 40;
+			lightingModes[i].destinationY = lightingModes[i].startPosition.y + 40;
 		else
-			lightningModes[i].destinationY = lightningModes[i].startPosition.y;
+			lightingModes[i].destinationY = lightingModes[i].startPosition.y;
 	}
 
-	if(hoveredMode == lightningModes.size())
+	if(hoveredMode == lightingModes.size())
 		textLabels[0].setFillColor({ 0,0,0,0 });
 	else
 	{
-		textLabels[0].setString(lightningModes[hoveredMode].name);
+		textLabels[0].setString(lightingModes[hoveredMode].name);
 		textLabels[0].setOrigin((int)(textLabels[0].getGlobalBounds().width / 2), 0);
 		textLabels[0].setPosition(50, 100 + 90 * hoveredMode);
 		if(hoveredMode == 1)
 			textLabels[0].setPosition(52, 100 + 90 * hoveredMode);
-		textLabels[0].setFillColor({255,255,255, lightningModes[hoveredMode].textOpacity});
+		textLabels[0].setFillColor({255,255,255, lightingModes[hoveredMode].textOpacity});
 	}
 }
 void MainWindow::updateRenderTextures(int lM) {
@@ -446,8 +503,8 @@ void MainWindow::updateRenderTextures(int lM) {
 	case 1:
 		textLabels[1].setString("Rainbow");
 		textLabels[2].setString("This mode will apply a rainbow-like lighting effect to your strip, making all LEDs on the strip shine \nin different colors, flowing in either one direction"\
-			" or the other. Changing the speed will make the \nwave go faster or slower respectively, and setting which way the wave goes should be done to \nbest fit your setup. If you have set"\
-			" a different LED-amount in the setup compared to what you \nactually have, the wave will be extended to only show a few different hues instead of the entire \nspectrum. If the amount was"\
+			" or the other. Changing the speed will make the \nwave go faster or slower respectively, and setting which way the wave goes should be done to \nbest fit your configuration. If you have set"\
+			" a different LED-amount in the setup compared to what \nyou actually have, the wave will be extended to only show a few different hues instead of the entire \nspectrum. If the amount was"\
 			" lower, the spectrum will be repeated multiple times to fill up the strip.");
 		break;
 
