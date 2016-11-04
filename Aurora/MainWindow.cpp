@@ -96,7 +96,7 @@ void MainWindow::updateWindow(sf::RenderWindow& window, sf::Vector2i mousePos) {
 
 	updateButtons(mousePos);
 
-	for (int i = 2; i < loadedSprites.size(); i++) {
+	for (int i = 6; i < loadedSprites.size(); i++) {
 		window.draw(loadedSprites[i]);
 	}
 	for (int i = 0; i < textLabels.size(); i++) {
@@ -106,7 +106,7 @@ void MainWindow::updateWindow(sf::RenderWindow& window, sf::Vector2i mousePos) {
 	for (int i = 2; i < roundedRectangles.size(); i++) {
 		window.draw(roundedRectangles[i].roundedRectangle);
 	}
-	for (int i = 0; i < circleShapes.size(); i++) {
+	for (int i = 1; i < circleShapes.size(); i++) {
 		window.draw(circleShapes[i]);
 	}
 // 	for (int i = 4; i < rectangleShapes.size(); i++) {
@@ -177,6 +177,9 @@ void MainWindow::updateWindow(sf::RenderWindow& window, sf::Vector2i mousePos) {
 			}
 			renderTextures[i].draw(roundedRectangles[0].roundedRectangle);
 			renderTextures[i].draw(roundedRectangles[1].roundedRectangle);
+			for (int j = 2; j < 6; j++)
+				renderTextures[i].draw(loadedSprites[j]);
+			renderTextures[i].draw(circleShapes[0]);
 		} else if (i == 1) { //Rainbow
 			for (int j = 6; j < 10; j++) {
 				renderTextures[i].draw(textLabels[j]);
@@ -304,16 +307,30 @@ void MainWindow::initializeMain() {
 	newTexture((void*)CycleIcon, CycleIcon_Size, "cycleicon");
 	newTexture((void*)IconFrame, IconFrame_Size, "iconframe");
 	newTexture((void*)baudArrow, baudArrow_Size, "arrow");
+	newTexture((void*)colorWheel, colorWheel_Size, "colorwheel");
+	newTexture((void*)cwRed, cwRed_Size, "cwred");
+	newTexture((void*)cwGreen, cwGreen_Size, "cwgreen");
+	newTexture((void*)cwBlue, cwBlue_Size, "cwblue");
 
 	//Sprites
 	newSprite(sf::Vector2f(10, 10), "iconframe");
 	newSprite(sf::Vector2f(111, 196), "arrow");
-	
+	newSprite(sf::Vector2f(600, 300), "cwred");
+	newSprite(sf::Vector2f(600, 300), "cwgreen");
+	newSprite(sf::Vector2f(600, 300), "cwblue");
+	newSprite(sf::Vector2f(600, 300), "colorwheel");
+	for (int i = 2; i < 6; i++)
+		loadedSprites[i].setOrigin(loadedSprites[i].getGlobalBounds().width / 2, loadedSprites[i].getGlobalBounds().height / 2);
+
 	//Lighting modes
 	addMode("staticicon", "Static");
 	addMode("rainbowicon", "Rainbow");
 	addMode("fadeicon", "Fade");
 	addMode("cycleicon", "Cycle");
+
+	//CircleShapes
+	newCircleShape(sf::Vector2f(600, 300), 53, -1, sf::Color(32, 28, 218));
+	circleShapes[0].setOrigin(53, 53);
 
 	//Rounded rectangles
 	newRoundRectangle(sf::Vector2f(34, 150), sf::Vector2f(60, 300), 10, sf::Color(145, 145, 145), -2);
@@ -414,7 +431,9 @@ void MainWindow::newRoundRectangle(sf::Vector2f position, sf::Vector2f size, int
 }
 void MainWindow::newCircleShape(sf::Vector2f position, int radius, int corners, sf::Color color, int rotation) {
 
-	sf::CircleShape c(radius, corners);
+	sf::CircleShape c(radius);
+	if (!(corners < 0))
+		c.setPointCount(corners);
 	c.setFillColor(color);
 	c.setOrigin((int)(c.getGlobalBounds().width / 2), (int)(c.getGlobalBounds().height / 2));
 	c.rotate(rotation);
