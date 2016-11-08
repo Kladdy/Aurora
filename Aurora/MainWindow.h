@@ -8,6 +8,7 @@ class MainWindow {
 public:
 	void updateWindow(sf::RenderWindow& window, sf::Vector2i mousePos);
 	void mouseClicked(sf::Vector2i mousePos, int buttonClicked);
+	void mouseScrolled(sf::Vector2i mousePos, int scrollDelta);
 
 private:
 	struct Button;
@@ -24,4 +25,5 @@ private:
 	void addMode(string texture, string name);
 	void updateButtons(sf::Vector2i mousePos);
 	void updateRenderTextures(int lM);
+	void updateRotations(sf::Vector3i rt);
 };

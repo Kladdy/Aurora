@@ -106,6 +106,8 @@ void AuroraMain(sf::RenderWindow* w) {
 			mainWindow.inst.setVisible(false);
 		if (event.type == sf::Event::MouseButtonPressed && sf::Mouse::isButtonPressed(sf::Mouse::Left))
 			MW.mouseClicked(mousePos, 1);
+		if (event.type == sf::Event::MouseWheelScrolled)
+			MW.mouseScrolled(mousePos, event.mouseWheelScroll.delta);
 	}
 
 	window.clear(sf::Color::Black);

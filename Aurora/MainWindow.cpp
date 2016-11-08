@@ -3,6 +3,8 @@
 #include "fonts.hpp"
 #include <cmath>
 
+#define PI 3.14159265
+
 using namespace std;
 
 namespace mainWin {
@@ -70,8 +72,13 @@ namespace mainWin {
 	vector<sf::RectangleShape> rectangleShapes;
 
 	//Static color
-	sf::Color pickedColor = sf::Color(0, 255, 255);
-	sf::Color previewColor = sf::Color(0, 255, 255);
+	bool mousePressed = false;
+	int heldColor = 0;
+	sf::Vector2i posHeld;
+	sf::Vector3i initRotations;
+	sf::Vector3i inRot;
+	sf::Color pickedColor = sf::Color(255, 255, 255);
+	sf::Color previewColor = sf::Color(255, 255, 255);
 	sf::VertexArray hueBar(sf::Quads, 24);
 
 	//IntRects
@@ -117,46 +124,78 @@ void MainWindow::updateWindow(sf::RenderWindow& window, sf::Vector2i mousePos) {
 		if(hoveredMode == i)
 			window.draw(loadedSprites[0]);
 	}
-	if (lightingMode == 0 && sf::Mouse::isButtonPressed(sf::Mouse::Left) && sf::IntRect(204, 140, 120, 320).contains(mousePos)) {
-		if (mousePos.y >= 140 && mousePos.y <= 200)
-			pickedColor.r = 255;
-		else if (mousePos.y >= 200 && mousePos.y <= 250)
-			pickedColor.r = 255 - ((mousePos.y - 200) * 5.1);
-		else if (mousePos.y >= 350 && mousePos.y <= 400)
-			pickedColor.r = ((mousePos.y - 350) * 5.1);
-		else if (mousePos.y >= 400 && mousePos.y <= 460)
-			pickedColor.r = 255;
-		else
-			pickedColor.r = 0;
 
+	if (lightingMode == 0) {
+		if (sf::Mouse::isButtonPressed(sf::Mouse::Left) && !mousePressed) {
+			mousePressed = true;
+			posHeld = mousePos;
+			int angle;
+			if (mousePos.x == 360 && mousePos.y <= 300)
+				angle = 0;
+			else if (mousePos.x == 360 && mousePos.y > 300)
+				angle = 180;
+			else if (mousePos.x <= 360 && mousePos.y == 300)
+				angle = 270;
+			else if (mousePos.x > 360 && mousePos.y == 300)
+				angle = 90;
+			else if (mousePos.x < 360 && mousePos.y < 300)
+				angle = (atan2((300 - mousePos.y), (360 - mousePos.x))) * 180 / PI + 270;
+			else if (mousePos.x < 360 && mousePos.y > 300)
+				angle = (atan2((mousePos.y - 300), (360 - mousePos.x))) * -180 / PI + 270;
+			else if (mousePos.x > 360 && mousePos.y < 300)
+				angle = (atan2((300 - mousePos.y), (mousePos.x - 360))) * -180 / PI + 90;
+			else if (mousePos.x > 360 && mousePos.y > 300)
+				angle = (atan2((mousePos.y - 300), (mousePos.x - 360))) * 180 / PI + 90;
+			initRotations.x = loadedSprites[2].getRotation();
+			initRotations.y = loadedSprites[3].getRotation();
+			initRotations.z = loadedSprites[4].getRotation();
+			int distanceToCenter = sqrt(pow((mousePos.x - 360), 2) + pow((mousePos.y - 300), 2));
+			if (distanceToCenter >= 120 && distanceToCenter <= 147) {		//Red
+				heldColor = 1;
+				inRot.x = angle;
+			} else if (distanceToCenter >= 90 && distanceToCenter <= 119) {	//Green
+				heldColor = 2;
+				inRot.y = angle;
+			} else if (distanceToCenter >= 61 && distanceToCenter <= 89) {	//Blue
+				heldColor = 3;
+				inRot.z = angle;
+			} else {
+				heldColor = 0;
+			}
+			
+		} else if (!(sf::Mouse::isButtonPressed(sf::Mouse::Left) && mousePressed)) {
+			mousePressed = false;
+			heldColor = 0;
+		}
+		if (mousePressed && heldColor != 0) {
+			int angle;
+			if (mousePos.x == 360 && mousePos.y <= 300)
+				angle = 0;
+			else if (mousePos.x == 360 && mousePos.y > 300)
+				angle = 180;
+			else if (mousePos.x <= 360 && mousePos.y == 300)
+				angle = 270;
+			else if (mousePos.x > 360 && mousePos.y == 300)
+				angle = 90;
+			else if (mousePos.x < 360 && mousePos.y < 300) 
+				angle = (atan2((300 - mousePos.y), (360 - mousePos.x))) * 180 / PI + 270;
+			else if (mousePos.x < 360 && mousePos.y > 300) 
+				angle = (atan2((mousePos.y - 300), (360 - mousePos.x))) * -180 / PI + 270;
+			else if (mousePos.x > 360 && mousePos.y < 300) 
+				angle = (atan2((300 - mousePos.y), (mousePos.x - 360))) * -180 / PI + 90;
+			else if (mousePos.x > 360 && mousePos.y > 300) 
+				angle = (atan2((mousePos.y - 300), (mousePos.x - 360))) * 180 / PI + 90;
+			
+			if (heldColor == 1) {
+				loadedSprites[2].setRotation(angle - inRot.x + initRotations.x);
+			} else if (heldColor == 2) {
+				loadedSprites[3].setRotation(angle - inRot.y + initRotations.y);
+			} else if (heldColor == 3) {
+				loadedSprites[4].setRotation(angle - inRot.z + initRotations.z);
+			}
 
-		if (mousePos.y >= 150 && mousePos.y <= 200)
-			pickedColor.g = ((mousePos.y - 150) * 5.1);
-		else if (mousePos.y >= 200 && mousePos.y <= 300)
-			pickedColor.g = 255;
-		else if (mousePos.y >= 300 && mousePos.y <= 350)
-			pickedColor.g = 255 - ((mousePos.y - 300) * 5.1);
-		else
-			pickedColor.g = 0;
-
-
-		if (mousePos.y >= 300 && mousePos.y <= 400)
-			pickedColor.b = 255;
-		else if (mousePos.y >= 250 && mousePos.y <= 300)
-			pickedColor.b = ((mousePos.y - 250) * 5.1);
-		else if (mousePos.y >= 400 && mousePos.y <= 450)
-			pickedColor.b = 255 - ((mousePos.y - 400) * 5.1);
-		else
-			pickedColor.b = 0;
-
-		if (mousePos.y <= 153)
-			rectangleShapes[5].setPosition(104, 152);
-		else if (mousePos.y >= 447)
-			rectangleShapes[5].setPosition(104, 444);
-		else
-			rectangleShapes[5].setPosition(104, mousePos.y - 2);
-
-		previewColor = pickedColor;
+			updateRotations(sf::Vector3i(loadedSprites[2].getRotation(), loadedSprites[3].getRotation(), loadedSprites[4].getRotation()));
+		}
 	}
 
 	for (int i = 0; i < lightingModes.size(); i++) {
@@ -168,18 +207,16 @@ void MainWindow::updateWindow(sf::RenderWindow& window, sf::Vector2i mousePos) {
 
 		if (i == 0) { //Static
 			rectangleShapes[0].setFillColor(pickedColor);
-			rectangleShapes[4].setFillColor(previewColor);
+			rectangleShapes[3].setFillColor(previewColor);
 			textLabels[5].setString("Red:     " + to_string(previewColor.r) + "\nGreen: " + to_string(previewColor.g) + "\nBlue:     " + to_string(previewColor.b));
 			renderTextures[i].draw(textLabels[5]);
-			renderTextures[i].draw(hueBar);
-			for (int j = 0; j < 6; j++) {
+			for (int j = 0; j < 4; j++) {
 				renderTextures[i].draw(rectangleShapes[j]);
 			}
 			renderTextures[i].draw(roundedRectangles[0].roundedRectangle);
 			renderTextures[i].draw(roundedRectangles[1].roundedRectangle);
 			for (int j = 2; j < 6; j++)
 				renderTextures[i].draw(loadedSprites[j]);
-			renderTextures[i].draw(circleShapes[0]);
 		} else if (i == 1) { //Rainbow
 			for (int j = 6; j < 10; j++) {
 				renderTextures[i].draw(textLabels[j]);
@@ -280,6 +317,31 @@ void MainWindow::mouseClicked(sf::Vector2i mousePos, int buttonClicked) {
 	cout << "X: " << mousePos.x << " Y: " << mousePos.y << " B: " << buttonClicked << endl;
 	return;
 }
+void MainWindow::mouseScrolled(sf::Vector2i mousePos, int scrollDelta) {
+	if (lightingMode == 0 && !mousePressed) {
+		int distanceToCenter = sqrt(pow((mousePos.x - 360), 2) + pow((mousePos.y - 300), 2));
+		if (distanceToCenter >= 120 && distanceToCenter <= 147) {		//Red
+			if (mousePos.x >= 360)
+				loadedSprites[2].setRotation(loadedSprites[2].getRotation() - scrollDelta * 10);
+			else 
+				loadedSprites[2].setRotation(loadedSprites[2].getRotation() + scrollDelta * 10);
+		} else if (distanceToCenter >= 90 && distanceToCenter <= 119) {	//Green
+			if (mousePos.x >= 360)
+				loadedSprites[3].setRotation(loadedSprites[3].getRotation() - scrollDelta * 10);
+			else
+				loadedSprites[3].setRotation(loadedSprites[3].getRotation() + scrollDelta * 10);
+		} else if (distanceToCenter >= 61 && distanceToCenter <= 89) {	//Blue
+			if (mousePos.x >= 360)
+				loadedSprites[4].setRotation(loadedSprites[4].getRotation() - scrollDelta * 10);
+			else
+				loadedSprites[4].setRotation(loadedSprites[4].getRotation() + scrollDelta * 10);
+		} else {
+			return;
+		}
+		updateRotations(sf::Vector3i(loadedSprites[2].getRotation(), loadedSprites[3].getRotation(), loadedSprites[4].getRotation()));
+	}
+	
+}
 void MainWindow::initializeMain() {
 
 	//Fonts
@@ -293,7 +355,7 @@ void MainWindow::initializeMain() {
 	newText(sf::Vector2f(100, 48), "Once you have properly set up Aurora as well as your Arduino, you are ready let the colors run \nfree! To the left, select a mode for your lighting. This will then bring up"\
 		" additional parameters for \nyou to configure exactly how you want your strip to act. Once you're happy, push the lighting to \nyour Arduino, which in turn will make your RGB strip dazzle with colors."\
 		" If something goes wrong, \nmake sure that you completed the setup, accessable from the tray window.", "comfortaa", 18);
-	newText(sf::Vector2f(234, 260), "Red:\nGreen:\nBlue:", "comfortaa", 21);
+	newText(sf::Vector2f(426, 260), "Red:\nGreen:\nBlue:", "comfortaa", 21);
 	newText(sf::Vector2f(29, 200), "Direction:", "comfortaa", 18);
 	newText(sf::Vector2f(29, 240), "Speed:", "comfortaa", 18);
 	newText(sf::Vector2f(140, 200), "Downstream", "comfortaa", 18);
@@ -315,10 +377,10 @@ void MainWindow::initializeMain() {
 	//Sprites
 	newSprite(sf::Vector2f(10, 10), "iconframe");
 	newSprite(sf::Vector2f(111, 196), "arrow");
-	newSprite(sf::Vector2f(600, 300), "cwred");
-	newSprite(sf::Vector2f(600, 300), "cwgreen");
-	newSprite(sf::Vector2f(600, 300), "cwblue");
-	newSprite(sf::Vector2f(600, 300), "colorwheel");
+	newSprite(sf::Vector2f(260, 300), "cwred");
+	newSprite(sf::Vector2f(260, 300), "cwgreen");
+	newSprite(sf::Vector2f(260, 300), "cwblue");
+	newSprite(sf::Vector2f(260, 300), "colorwheel");
 	for (int i = 2; i < 6; i++)
 		loadedSprites[i].setOrigin(loadedSprites[i].getGlobalBounds().width / 2, loadedSprites[i].getGlobalBounds().height / 2);
 
@@ -329,38 +391,16 @@ void MainWindow::initializeMain() {
 	addMode("cycleicon", "Cycle");
 
 	//CircleShapes
-	newCircleShape(sf::Vector2f(600, 300), 53, -1, sf::Color(32, 28, 218));
-	circleShapes[0].setOrigin(53, 53);
 
 	//Rounded rectangles
 	newRoundRectangle(sf::Vector2f(34, 150), sf::Vector2f(60, 300), 10, sf::Color(145, 145, 145), -2);
 	newRoundRectangle(sf::Vector2f(34, 150), sf::Vector2f(60, 300), 10, sf::Color::Black, 4);
 
 	//RectangleShapes
-	newRectangle(sf::Vector2f(34, 150), sf::Vector2f(60, 100), sf::Color::Red);
+	newRectangle(sf::Vector2f(34, 150), sf::Vector2f(60, 100), sf::Color::White);
 	newRectangle(sf::Vector2f(34, 250), sf::Vector2f(60, 100), sf::Color::White);
 	newRectangle(sf::Vector2f(34, 350), sf::Vector2f(60, 100), sf::Color::Black);
-	newRectangle(sf::Vector2f(104, 150), sf::Vector2f(120, 300), sf::Color::Transparent, -2, sf::Color(145, 145, 145));
-	newRectangle(sf::Vector2f(234, 150), sf::Vector2f(100, 100), sf::Color::Red, -2, sf::Color(145, 145, 145));
-	newRectangle(sf::Vector2f(104, 298), sf::Vector2f(120, 4), sf::Color::Transparent, 2, sf::Color(100, 100, 100));
-
-	//Huebar
-	for (int i = 0; i < 24; i++) {
-		sf::Vector2f pos;
-		sf::Color color;
-		if (i % 4 == 1 || i % 4 == 2) pos.x = 224;
-		else pos.x = 104;
-		if (i <= 1) { pos.y = 150; color = sf::Color::Red;}
-		else if (i <= 5) { pos.y = 200; color = sf::Color::Yellow; }
-		else if (i <= 9) { pos.y = 250; color = sf::Color::Green; }
-		else if (i <= 13) { pos.y = 300; color = sf::Color::Cyan; }
-		else if (i <= 17) { pos.y = 350; color = sf::Color::Blue; }
-		else if (i <= 21) { pos.y = 400; color = sf::Color::Magenta; }
-		else if (i <= 23) { pos.y = 450; color = sf::Color::Red; }
-
-		hueBar[i].position = pos;
-		hueBar[i].color = color;
-	}
+	newRectangle(sf::Vector2f(426, 150), sf::Vector2f(100, 100), sf::Color::Red, -2, sf::Color(145, 145, 145));
 
 	//IntRects
 	mouseBox.push_back(sf::IntRect(221, 196, 10, 19));
@@ -543,4 +583,35 @@ void MainWindow::updateRenderTextures(int lM) {
 		textLabels[2].setString("");
 		break;
 	}
+}
+void MainWindow::updateRotations(sf::Vector3i rt) {
+	sf::Color c;
+	if (rt.x == 0)
+		c.r = 255;
+	else if (rt.x == 180)
+		c.r = 0;
+	else if (rt.x > 180)
+		c.r = (int)(rt.x * 255 / 180 - 255);
+	else if (rt.x < 180)
+		c.r = (int)(rt.x * -255 / 180 + 255);
+
+	if (rt.y == 0)
+		c.g = 255;
+	else if (rt.y == 180)
+		c.g = 0;
+	else if (rt.y > 180)
+		c.g = (int)(rt.y * 255 / 180 - 255);
+	else if (rt.y < 180)
+		c.g = (int)(rt.y * -255 / 180 + 255);
+
+	if (rt.z == 0)
+		c.b = 255;
+	else if (rt.z == 180)
+		c.b = 0;
+	else if (rt.z > 180)
+		c.b = (int)(rt.z * 255 / 180 - 255);
+	else if (rt.z < 180)
+		c.b = (int)(rt.z * -255 / 180 + 255);
+	previewColor = c;
+	pickedColor = c;
 }
